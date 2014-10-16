@@ -54,6 +54,11 @@
             <artifactId>dropwizard-scala_${scala.binary.version}</artifactId>
             <version>${dropwizard.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.bazaarvoice.ostrich</groupId>
+            <artifactId>ostrich-dropwizard</artifactId>
+            <version>1.9.0</version>
+        </dependency>
 
         <!-- Jackson -->
         <dependency>
