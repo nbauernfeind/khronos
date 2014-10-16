@@ -1,4 +1,4 @@
-package com.nefariouszhen.saturn.db
+package com.nefariouszhen.khronos.db
 
 import com.codahale.metrics.health.HealthCheck
 import com.codahale.metrics.health.HealthCheck.Result

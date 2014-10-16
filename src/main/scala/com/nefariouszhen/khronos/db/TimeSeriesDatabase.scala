@@ -1,4 +1,4 @@
-package com.nefariouszhen.saturn.db
+package com.nefariouszhen.khronos.db
 
 object TimeSeriesDatabase {
   trait Status {

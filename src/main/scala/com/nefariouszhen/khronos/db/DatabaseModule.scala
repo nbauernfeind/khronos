@@ -1,7 +1,7 @@
-package com.nefariouszhen.saturn.db
+package com.nefariouszhen.khronos.db
 
 import com.bazaarvoice.ostrich.dropwizard.healthcheck.CachingHealthCheck
-import com.nefariouszhen.saturn.util.DropwizardPrivateModule
+import com.nefariouszhen.khronos.util.DropwizardPrivateModule
 import io.dropwizard.setup.Environment
 import net.codingwell.scalaguice.InjectorExtensions._
 

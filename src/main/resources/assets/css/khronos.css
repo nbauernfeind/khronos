@@ -1,0 +1,44 @@
+.navbar-inverse .navbar-brand {
+    color: #ffffff;
+}
+
+body {
+    padding-top: 50px;
+}
+
+.jumbotron {
+    background-color: #FEDD00;
+    font-family: museo-slab, Georgia, "Times New Roman", Times, serif;
+    font-weight: bold;
+    margin-bottom: 0px;
+}
+
+.jumbotron h1 {
+    text-shadow: 4px 3px 0px #CBAA00;
+}
+
+.jumbotron .shameless-self-promotion a {
+    color: #7F5E00;
+    border-bottom: dotted 1px #000000;
+}
+
+.jumbotron .shameless-self-promotion a:hover {
+    color: #000000;
+    text-decoration: none;
+    border-bottom: solid 1px #000000;
+}
+
+.jumbotron .font-img {
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.jumbotron .font-img .fa {
+    font-size: 165px;
+}
+
+#social-buttons {
+    padding: 20px 0px 5px 0px;
+    text-align: center;
+    background-color: #f5f5f5;
+}

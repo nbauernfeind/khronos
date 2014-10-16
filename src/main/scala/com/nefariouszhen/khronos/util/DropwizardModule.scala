@@ -1,4 +1,4 @@
-package com.nefariouszhen.saturn.util
+package com.nefariouszhen.khronos.util
 
 import com.google.inject._
 import com.google.inject.assistedinject.FactoryModuleBuilder

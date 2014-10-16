@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.nefariouszhen.saturn</groupId>
-    <artifactId>saturn-engine</artifactId>
+    <groupId>com.nefariouszhen.khronos</groupId>
+    <artifactId>khronos-engine</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <name>${project.artifactId}</name>
-    <description>Saturn is yet another time series system.</description>
+    <description>Khronos is yet another time series system.</description>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -58,6 +58,11 @@
             <groupId>com.bazaarvoice.ostrich</groupId>
             <artifactId>ostrich-dropwizard</artifactId>
             <version>1.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bazaarvoice.dropwizard</groupId>
+            <artifactId>dropwizard-webjars-bundle</artifactId>
+            <version>0.2.1</version>
         </dependency>
 
         <!-- Jackson -->
@@ -196,7 +201,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.nefariouszhen.saturn.engine.SaturnApplication</mainClass>
+                                    <mainClass>com.nefariouszhen.khronos.engine.KhronosApplication</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

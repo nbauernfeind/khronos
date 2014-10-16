@@ -1,4 +1,4 @@
-package com.nefariouszhen.saturn.db
+package com.nefariouszhen.khronos.db
 
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.{GET, Path, Produces}

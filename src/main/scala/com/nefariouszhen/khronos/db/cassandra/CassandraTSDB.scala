@@ -1,6 +1,6 @@
-package com.nefariouszhen.saturn.db.cassandra
+package com.nefariouszhen.khronos.db.cassandra
 
-import com.nefariouszhen.saturn.db.TimeSeriesDatabase
+import com.nefariouszhen.khronos.db.TimeSeriesDatabase
 
 class CassandraTSDB extends TimeSeriesDatabase {
   override def status: TimeSeriesDatabase.Status = new Status

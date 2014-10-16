@@ -1,6 +1,6 @@
-package com.nefariouszhen.saturn.db.cassandra
+package com.nefariouszhen.khronos.db.cassandra
 
-import com.nefariouszhen.saturn.db.{DatabaseModule, TimeSeriesDatabase}
+import com.nefariouszhen.khronos.db.{DatabaseModule, TimeSeriesDatabase}
 
 class CassandraDatabaseModule extends DatabaseModule {
   override def doConfigure(): Unit = {
