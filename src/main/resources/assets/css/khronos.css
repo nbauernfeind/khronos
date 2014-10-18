@@ -56,6 +56,12 @@ body {
     background-color: #F9ED1D;
 }
 
+.panel-widget>.panel-heading>.panel-title {
+    font-weight: bold;
+    font-family: museo-slab, Georgia, "Times New Roman", Times, serif;
+    font-size: 16px;
+}
+
 .panel-widget {
     border: 0px;
     -webkit-box-shadow: 0 1px 3px rgba(0,0,0,.1);
