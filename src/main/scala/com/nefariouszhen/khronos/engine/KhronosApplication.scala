@@ -8,6 +8,7 @@ import com.google.inject.Guice
 import com.massrelevance.dropwizard.ScalaApplication
 import com.massrelevance.dropwizard.bundles.ScalaBundle
 import com.nefariouszhen.khronos.db.cassandra.CassandraDatabaseModule
+import com.nefariouszhen.khronos.ui.UiModule
 import com.nefariouszhen.khronos.util.DropwizardModule
 import io.dropwizard.Configuration
 import io.dropwizard.setup.{Bootstrap, Environment}
@@ -44,6 +45,7 @@ abstract class KhronosApplicationBase[T <: KhronosConfiguration] extends ScalaAp
 
 object KhronosApplication extends KhronosApplicationBase[KhronosConfiguration] {
   def createModules(configuration: KhronosConfiguration): Seq[DropwizardModule[_]] = Seq(
-    new CassandraDatabaseModule
+    new CassandraDatabaseModule,
+    new UiModule
   )
 }

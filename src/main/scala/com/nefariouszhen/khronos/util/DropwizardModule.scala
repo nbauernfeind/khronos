@@ -1,9 +1,9 @@
 package com.nefariouszhen.khronos.util
 
-import com.google.inject._
 import com.google.inject.assistedinject.FactoryModuleBuilder
+import com.google.inject.{Binder, Injector, Module, PrivateBinder, Provider}
 import io.dropwizard.setup.Environment
-import net.codingwell.scalaguice._
+import net.codingwell.scalaguice.{InternalModule, ScalaModule, ScalaPrivateModule, typeLiteral}
 
 trait DropwizardModule[B <: Binder] extends Module {
   self: InternalModule[B] =>
@@ -20,6 +20,9 @@ trait DropwizardModule[B <: Binder] extends Module {
 
   def doConfigure()
   def install(env: Environment)
+
+  import net.codingwell.scalaguice.InjectorExtensions._
+  def instance[T: Manifest] = injector.instance[T]
 }
 
 abstract class DropwizardPublicModule extends ScalaModule with DropwizardModule[Binder] {

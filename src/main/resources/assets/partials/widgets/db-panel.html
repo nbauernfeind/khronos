@@ -1,0 +1,34 @@
+<div class="widget home stats">
+    <div class="hero-widget well well-sm">
+        <div class="text">
+            <var>{{widget.numSeriesActive | asHumanFriendlyNumber }}</var>
+            <label class="text-muted">Series Active</label>
+        </div>
+    </div>
+
+    <div class="hero-widget well well-sm">
+        <div class="text">
+            <var>{{widget.numStreamsActive | asHumanFriendlyNumber }}</var>
+            <label class="text-muted">Streams Active</label>
+        </div>
+    </div>
+
+    <div class="hero-widget well well-sm">
+        <div class="text">
+            <var>{{widget.numInPointsLastHour | asHumanFriendlyNumber }}</var>
+            <label class="text-muted">Collected in 60m</label>
+        </div>
+    </div>
+
+    <div class="hero-widget well well-sm">
+        <div class="text">
+            <var>{{widget.numOutPointsLastHour | asHumanFriendlyNumber }}</var>
+            <label class="text-muted">Extracted in 60m</label>
+        </div>
+    </div>
+</div>
+
+<div class="widget home status">
+    <div ng-hide="widget.isConnected"><i class="fa fa-exclamation-circle text-danger"></i> Database is disconnected.</div>
+    <div ng-show="widget.isConnected"><i class="fa fa-check-circle text-success"></i> Database is connected.</div>
+</div>

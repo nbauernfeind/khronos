@@ -3,15 +3,19 @@
         <div class="row">
             <div class="col-md-8 col-sm-8 text-center">
                 <h1>Khronos</h1>
-                <p>The time series engine worth collecting for.</p>
+                <p>The time series engine worth your <em>ms</em>.</p>
                 <div class="shameless-self-promotion">
-                    Version 0.0.1 &nbsp;&nbsp;·&nbsp;&nbsp;
-                    <a href="https://github.com/nbauernfeind/khronos">GitHub Project</a> &nbsp;&nbsp;·&nbsp;&nbsp;
-                    Created by Nate Bauernfeind
+                    <div class="blk">Version 0.0.1</div>
+                    <div class="blk">&nbsp;&nbsp;·&nbsp;&nbsp;</div>
+                    <div class="blk"><a href="https://github.com/nbauernfeind/khronos">GitHub Project</a></div>
+                    <div class="blk">&nbsp;&nbsp;·&nbsp;&nbsp;</div>
+                    <div class="blk">Created by<br/>Nate Bauernfeind</div>
                 </div>
             </div>
             <div class="col-md-4 col-sm-4">
-                <div class="font-img"><i class="fa fa-bar-chart"></i></div>
+                <div class="font-img">
+                     <i class="fa fa-bar-chart"></i>
+                </div>
             </div>
         </div>
     </div>
@@ -33,4 +37,15 @@
             </li>
         </ul>
     </div>
+</div>
+<div class="container-fluid">
+    <div class="col-xs-12 col-sm-6 col-md-4" ng-repeat="meta in widgets"><div ng-repeat="widget in [meta.data]">
+        <div class="panel panel-widget">
+            <div class="panel-heading">
+                <h3 class="panel-title">{{meta.title}}</h3>
+            </div>
+            <div class="panel-body" ng-include="meta.partial">
+            </div>
+        </div>
+    </div></div>
 </div>
