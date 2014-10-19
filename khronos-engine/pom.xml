@@ -1,0 +1,60 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.nefariouszhen.khronos</groupId>
+        <artifactId>khronos-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>khronos-engine</artifactId>
+
+    <name>${project.artifactId}</name>
+    <description>Khronos DB In-Memory Plugin</description>
+
+    <dependencies>
+        <!-- Khronos -->
+        <dependency>
+            <groupId>com.nefariouszhen.khronos</groupId>
+            <artifactId>khronos-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.nefariouszhen.khronos</groupId>
+            <artifactId>khronos-db-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Dropwizard -->
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-auth</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.bazaarvoice.dropwizard</groupId>
+            <artifactId>dropwizard-configurable-assets-bundle</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.bazaarvoice.dropwizard</groupId>
+            <artifactId>dropwizard-redirect-bundle</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.massrelevance</groupId>
+            <artifactId>dropwizard-scala_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.bazaarvoice.ostrich</groupId>
+            <artifactId>ostrich-dropwizard</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.bazaarvoice.dropwizard</groupId>
+            <artifactId>dropwizard-webjars-bundle</artifactId>
+        </dependency>
+    </dependencies>
+</project>
