@@ -7,7 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.inject.Guice
 import com.massrelevance.dropwizard.ScalaApplication
 import com.massrelevance.dropwizard.bundles.ScalaBundle
+import com.nefariouszhen.khronos.db.DatabaseConfiguration
 import com.nefariouszhen.khronos.db.cassandra.CassandraDatabaseModule
+import com.nefariouszhen.khronos.db.ram.InMemoryTSDBConfiguration
 import com.nefariouszhen.khronos.ui.UiModule
 import com.nefariouszhen.khronos.util.DropwizardModule
 import io.dropwizard.Configuration
@@ -15,9 +17,11 @@ import io.dropwizard.setup.{Bootstrap, Environment}
 
 class KhronosConfiguration extends Configuration with AssetsBundleConfiguration {
   @JsonProperty
-  val assets = new AssetsConfiguration
-
+  var assets = new AssetsConfiguration
   override def getAssetsConfiguration = assets
+
+  @JsonProperty
+  var db: DatabaseConfiguration = new InMemoryTSDBConfiguration
 }
 
 abstract class KhronosApplicationBase[T <: KhronosConfiguration] extends ScalaApplication[T] {
@@ -45,7 +49,7 @@ abstract class KhronosApplicationBase[T <: KhronosConfiguration] extends ScalaAp
 
 object KhronosApplication extends KhronosApplicationBase[KhronosConfiguration] {
   def createModules(configuration: KhronosConfiguration): Seq[DropwizardModule[_]] = Seq(
-    new CassandraDatabaseModule,
+    configuration.db.buildModule(),
     new UiModule
   )
 }

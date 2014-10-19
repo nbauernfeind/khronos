@@ -1,0 +1,2 @@
+com.nefariouszhen.khronos.db.cassandra.CassandraTSDBConfiguration
+com.nefariouszhen.khronos.db.ram.InMemoryTSDBConfiguration
