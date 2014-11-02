@@ -9,7 +9,9 @@ abstract class DatabaseModule extends DropwizardPrivateModule {
   def doConfigure(): Unit = {
     bind[DatabaseResource].asEagerSingleton()
     bind[DatabaseHealthCheck].asEagerSingleton()
-    expose[TimeSeriesDatabase]
+
+    bind[Multiplexus].asEagerSingleton()
+    expose[Multiplexus]
   }
 
   def install(env: Environment): Unit = {

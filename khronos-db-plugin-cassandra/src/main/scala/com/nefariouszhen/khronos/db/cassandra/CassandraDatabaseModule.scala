@@ -1,7 +1,7 @@
 package com.nefariouszhen.khronos.db.cassandra
 
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.nefariouszhen.khronos.db.{DatabaseConfiguration, DatabaseModule, TimeSeriesDatabase}
+import com.nefariouszhen.khronos.db.{TimeSeriesDatabaseDAO, DatabaseConfiguration, DatabaseModule}
 import com.nefariouszhen.khronos.util.DropwizardModule
 
 @JsonTypeName("cassandra")
@@ -13,7 +13,7 @@ class CassandraDatabaseModule extends DatabaseModule {
   override def doConfigure(): Unit = {
     super.doConfigure()
 
-    bind[CassandraTSDB].asEagerSingleton()
-    bind[TimeSeriesDatabase].to[CassandraTSDB]
+    bind[CassandraTimeSeriesDatabaseDAO].asEagerSingleton()
+    bind[TimeSeriesDatabaseDAO].to[CassandraTimeSeriesDatabaseDAO]
   }
 }

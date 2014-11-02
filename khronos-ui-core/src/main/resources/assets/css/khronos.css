@@ -8,14 +8,15 @@ body {
 }
 
 .jumbotron {
-    background-color: #F9ED1D;
+    color: #000000;
+    background-color: #ED4337;
     font-family: museo-slab, Georgia, "Times New Roman", Times, serif;
     font-weight: bold;
     margin-bottom: 0px;
 }
 
 .jumbotron h1 {
-    text-shadow: 4px 3px 0px #C6BA00;
+    text-shadow: 4px 3px 0px #D42A1E;
 }
 
 .jumbotron .shameless-self-promotion {
@@ -23,7 +24,7 @@ body {
 }
 
 .jumbotron .shameless-self-promotion a {
-    color: #7F5E00;
+    color: #6E0000;
     border-bottom: dotted 1px #000000;
 }
 
@@ -53,7 +54,7 @@ body {
 
 .panel-widget>.panel-heading {
     color: #000000;
-    background-color: #F9ED1D;
+    background-color: #ED4337;
 }
 
 .panel-widget>.panel-heading>.panel-title {

@@ -30,6 +30,7 @@ abstract class KhronosApplicationBase[T <: KhronosConfiguration] extends ScalaAp
 
     bootstrap.addBundle(new RedirectBundle(
       new UriRedirect("/", "/khronos/"),
+      new UriRedirect("/favicon.ico", "/khronos/favicon.ico"),
       new UriRedirect("/index.htm", "/khronos/"),
       new UriRedirect("/index.html", "/khronos/"),
       new UriRedirect("/khronos/index.htm", "/khronos/"),

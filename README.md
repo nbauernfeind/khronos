@@ -1,3 +1,5 @@
+### Note: This project is in super pre-alpha stage. Don't judge it just yet!
+
 # Khronos
 
 This is yet another timeseries project that aims to be simple, extensible, and scalable.
