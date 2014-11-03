@@ -30,6 +30,7 @@ object MetricsRegistry {
 
 class MetricsRegistry {
 
+  import KeyValuePair._
   import com.nefariouszhen.khronos.db.MetricsRegistry._
 
   private[this] val registry = mutable.HashMap[Seq[KeyValuePair], Metric]()
@@ -46,11 +47,14 @@ class MetricsRegistry {
     meter
   }
 
+  private[this] val writeTm = newCounter(Seq("app" -> "khronos", "system" -> "registry", "type" -> "writeTime", "unit" -> "ms"))
   def writeMetrics(tsdb: Multiplexus): Unit = this.synchronized {
-    val tm = Time(System.currentTimeMillis() / 1e3.toLong)
+    val startTm = System.currentTimeMillis()
+    val tm = Time(startTm / 1e3.toLong)
     for ((keys, metric) <- registry) {
       tsdb.write(keys, tm, metric.getValue(tm))
     }
+    writeTm.addAndGet(System.currentTimeMillis() - startTm)
   }
 
   private[this] def validateKey(rawKeys: Seq[KeyValuePair]): Seq[KeyValuePair] = {

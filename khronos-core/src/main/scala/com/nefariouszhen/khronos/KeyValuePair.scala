@@ -3,9 +3,14 @@ package com.nefariouszhen.khronos
 case class KeyValuePair(k: String, v: String) extends Ordered[KeyValuePair] {
   override def toString: String = k + ":" + v
 
+  override def equals(o: Any): Boolean = o match {
+    case that: KeyValuePair => compare(that) == 0
+    case _ => false
+  }
+
   def compare(that: KeyValuePair): Int = {
-    val kc = k.compare(that.k)
-    if (kc == 0) v.compare(that.v) else kc
+    val kc = k.compareToIgnoreCase(that.k)
+    if (kc == 0) v.compareToIgnoreCase(that.v) else kc
   }
 }
 
