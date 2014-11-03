@@ -8,12 +8,12 @@ $(function () {
     var myName = false;
     var author = null;
     var logged = false;
-    var socket = atmosphere;
+    var socket = jQuery.atmosphere;
     var subSocket;
     var transport = 'websocket';
 
     // We are now ready to cut the request
-    var request = { url: document.location.toString() + 'chat',
+    var request = { url: '/chat/',
         contentType : "application/json",
         logLevel : 'debug',
         transport : transport ,
@@ -34,7 +34,7 @@ $(function () {
 
     request.onClientTimeout = function(r) {
         content.html($('<p>', { text: 'Client closed the connection after a timeout. Reconnecting in ' + request.reconnectInterval }));
-        subSocket.push(atmosphere.util.stringifyJSON({ author: author, message: 'is inactive and closed the connection. Will reconnect in ' + request.reconnectInterval }));
+        subSocket.push(JSON.stringify({ author: author, message: 'is inactive and closed the connection. Will reconnect in ' + request.reconnectInterval }));
         input.attr('disabled', 'disabled');
         setTimeout(function (){
             subSocket = socket.subscribe(request);
@@ -48,7 +48,7 @@ $(function () {
 
     // For demonstration of how you can customize the fallbackTransport using the onTransportFailure function
     request.onTransportFailure = function(errorMsg, request) {
-        atmosphere.util.info(errorMsg);
+        jQuery.atmosphere.util.info(errorMsg);
         request.fallbackTransport = "long-polling";
         header.html($('<h3>', { text: 'Atmosphere Chat. Default transport is WebSocket, fallback is ' + request.fallbackTransport }));
     };
@@ -57,9 +57,10 @@ $(function () {
 
         var message = response.responseBody;
         try {
-            var json = atmosphere.util.parseJSON(message);
+            var json = JSON.parse(message);
         } catch (e) {
             console.log('This doesn\'t look like a valid JSON: ', message);
+            console.log(e);
             return;
         }
 
@@ -77,7 +78,7 @@ $(function () {
     request.onClose = function(response) {
         content.html($('<p>', { text: 'Server closed the connection after a timeout' }));
         if (subSocket) {
-            subSocket.push(atmosphere.util.stringifyJSON({ author: author, message: 'disconnecting' }));
+            subSocket.push(JSON.stringify({ author: author, message: 'disconnecting' }));
         }
         input.attr('disabled', 'disabled');
     };
@@ -104,7 +105,7 @@ $(function () {
                 author = msg;
             }
 
-            subSocket.push(atmosphere.util.stringifyJSON({ author: author, message: msg }));
+            subSocket.push(JSON.stringify({ author: author, message: msg }));
             $(this).val('');
 
             input.attr('disabled', 'disabled');
