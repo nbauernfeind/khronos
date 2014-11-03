@@ -1,22 +1,19 @@
 package com.nefariouszhen.khronos.db
 
 import java.io.Closeable
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong, AtomicReference}
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
 import com.google.inject.Inject
-import com.nefariouszhen.khronos.{TimeSeriesPoint, KeyValuePair, Time}
+import com.nefariouszhen.khronos.util.SafeRunnable
+import com.nefariouszhen.khronos.{KeyValuePair, Time, TimeSeriesPoint}
+import io.dropwizard.lifecycle.Managed
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
-import scala.util.Random
 
 object Multiplexus {
-  class Status(m: Multiplexus) {
-    val isConnected = m.dao.isConnected
-    val numSeriesActive: Long = m.entryPoints.size
-    val numStreamsActive: Long = m.streamCount.get
-    val numInPointsLastHour: Long = Math.abs(Random.nextLong()) % 10000000000L
-    val numOutPointsLastHour: Long = Random.nextInt(100000)
-  }
+  val WRITE_DELAY_SECONDS = 30
 
   trait Query
 
@@ -24,6 +21,7 @@ object Multiplexus {
 
   trait ListenerCallback extends Closeable {
     def isClosed: Boolean
+
     def callback: TimeSeriesPoint => Unit
   }
 
@@ -31,13 +29,19 @@ object Multiplexus {
     private[this] var listeners: List[ListenerCallback] = Nil
 
     def isEmpty: Boolean = listeners.isEmpty
+
     def add(callback: ListenerCallback): Unit = this.synchronized {
       listeners = callback :: listeners
     }
 
-    def deliver(tsp: TimeSeriesPoint): Unit = this.synchronized {
+    def deliver(tsp: TimeSeriesPoint): Long = this.synchronized {
       listeners = listeners.filterNot(_.isClosed)
-      listeners.foreach(_.callback(tsp))
+      var cnt = 0
+      for (listener <- listeners) {
+        cnt += 1
+        listener.callback(tsp)
+      }
+      cnt
     }
 
     def reduce(): Unit = this.synchronized {
@@ -46,16 +50,51 @@ object Multiplexus {
   }
 }
 
-class Multiplexus @Inject()(private val dao: TimeSeriesDatabaseDAO) {
+class Multiplexus @Inject()(dao: TimeSeriesDatabaseDAO,
+                            registry: MetricsRegistry,
+                            executor: ScheduledExecutorService) extends Managed {
 
+  import com.nefariouszhen.khronos.KeyValuePair._
   import com.nefariouszhen.khronos.db.Multiplexus._
+
+  private[this] val log = LoggerFactory.getLogger(this.getClass)
+  private[this] val taskFuture = new AtomicReference[Option[ScheduledFuture[_]]](None)
+
+  private[this] val streamCount = new AtomicLong()
+  private[this] val entryPoints = mutable.HashMap[Seq[KeyValuePair], ListenerSet]()
+
+  /** Metrics **/
+  private[this] def newKey(hd: KeyValuePair) = List(hd, "app" -> "khronos", "system" -> "multiplexus")
+
+  private[this] val numInPoints = registry.newCounter(newKey("type" -> "numInPoints"))
+  private[this] val numOutPoints = registry.newCounter(newKey("type" -> "numOutPoints"))
+  private[this] val numQueriesActive = registry.newMeter(newKey("type" -> "numQueriesActive"), entryPoints.size)
+  private[this] val numStreamsActive = registry.newMeter(newKey("type" -> "numStreamsActive"), streamCount.get)
+
+  def start(): Unit = {
+    val newFuture = executor.scheduleAtFixedRate(
+      new SafeRunnable(log, registry.writeMetrics(this)),
+      (WRITE_DELAY_SECONDS - (System.currentTimeMillis() / 1e3).toLong) % WRITE_DELAY_SECONDS,
+      WRITE_DELAY_SECONDS,
+      TimeUnit.SECONDS
+    )
+    taskFuture.getAndSet(Some(newFuture)).foreach(_.cancel(false))
+  }
+
+  def stop(): Unit = {
+    taskFuture.getAndSet(None).foreach(_.cancel(false))
+  }
 
   def write(rawKeys: Seq[KeyValuePair], tm: Time, value: Double): Unit = {
     val keys = rawKeys.sorted
     dao.write(keys, tm, value)
+    numInPoints.incrementAndGet()
 
-    val listenerSet = this.synchronized { entryPoints.get(keys) }
-    listenerSet.foreach(_.deliver(TimeSeriesPoint(tm, value)))
+    for (listenerSet <- this.synchronized {
+      entryPoints.get(keys)
+    }) {
+      numOutPoints.addAndGet(listenerSet.deliver(TimeSeriesPoint(tm, value)))
+    }
   }
 
   def subscribe(query: RawQuery, listener: TimeSeriesPoint => Unit): Closeable = {
@@ -80,8 +119,13 @@ class Multiplexus @Inject()(private val dao: TimeSeriesDatabaseDAO) {
     ret
   }
 
-  private val streamCount = new AtomicLong()
-  private val entryPoints = mutable.HashMap[Seq[KeyValuePair], ListenerSet]()
+  def status: Status = new Status
 
-  def status: Status = new Status(this)
+  class Status {
+    val isConnected = dao.isConnected
+    val numQueriesActive: Double = Multiplexus.this.numQueriesActive.getLast
+    val numStreamsActive: Double = Multiplexus.this.numStreamsActive.getLast
+    val numInPointsLast30Sec: Double = Multiplexus.this.numInPoints.getLast
+    val numOutPointsLast30Sec: Double = Multiplexus.this.numOutPoints.getLast
+  }
 }

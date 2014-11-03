@@ -13,7 +13,9 @@
     <properties>
         <scala.version>2.11.3</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
+        <atmosphere.version>2.2.3</atmosphere.version>
         <dropwizard.version>0.7.1</dropwizard.version>
+        <jetty.version>9.0.7.v20131107</jetty.version> <!-- Dependent on Dropwizard Version -->
         <jackson.version>2.4.3</jackson.version>
         <guice.version>4.0-beta4</guice.version>
         <guava.version>17.0</guava.version>
@@ -161,6 +163,28 @@
                 <groupId>org.webjars</groupId>
                 <artifactId>numeral-js</artifactId>
                 <version>1.5.3-1</version>
+            </dependency>
+
+            <!-- Atmosphere (websockets) -->
+            <dependency>
+                <groupId>org.atmosphere</groupId>
+                <artifactId>atmosphere-runtime</artifactId>
+                <version>${atmosphere.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.atmosphere</groupId>
+                <artifactId>atmosphere-annotations</artifactId>
+                <version>${atmosphere.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty.websocket</groupId>
+                <artifactId>websocket-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>jquery-atmosphere</artifactId>
+                <version>${atmosphere.version}</version>
             </dependency>
 
             <!-- Test -->

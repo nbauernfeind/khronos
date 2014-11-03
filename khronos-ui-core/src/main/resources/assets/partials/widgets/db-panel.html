@@ -1,8 +1,8 @@
 <div class="widget home stats">
     <div class="hero-widget well well-sm">
         <div class="text">
-            <var>{{widget.numSeriesActive | asHumanFriendlyNumber }}</var>
-            <label class="text-muted">Series Active</label>
+            <var>{{widget.numQueriesActive | asHumanFriendlyNumber }}</var>
+            <label class="text-muted">Queries Active</label>
         </div>
     </div>
 
@@ -15,15 +15,15 @@
 
     <div class="hero-widget well well-sm">
         <div class="text">
-            <var>{{widget.numInPointsLastHour | asHumanFriendlyNumber }}</var>
-            <label class="text-muted">Collected in 60m</label>
+            <var>{{widget.numInPointsLast30Sec | asHumanFriendlyNumber }}</var>
+            <label class="text-muted">Collected in 30s</label>
         </div>
     </div>
 
     <div class="hero-widget well well-sm">
         <div class="text">
-            <var>{{widget.numOutPointsLastHour | asHumanFriendlyNumber }}</var>
-            <label class="text-muted">Extracted in 60m</label>
+            <var>{{widget.numOutPointsLast30Sec | asHumanFriendlyNumber }}</var>
+            <label class="text-muted">Extracted in 30s</label>
         </div>
     </div>
 </div>

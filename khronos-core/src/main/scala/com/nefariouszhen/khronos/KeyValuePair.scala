@@ -14,4 +14,8 @@ object KeyValuePair {
   def apply(s: String): KeyValuePair = s match {
     case kvpRegex(key, value) => KeyValuePair(key, value)
   }
+
+  implicit class KeyValuePairBuilder(k: String) {
+    def ->(v: String): KeyValuePair = KeyValuePair(k, v)
+  }
 }

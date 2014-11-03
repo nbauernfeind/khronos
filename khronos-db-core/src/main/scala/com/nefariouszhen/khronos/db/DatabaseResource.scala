@@ -10,5 +10,5 @@ import com.google.inject.Inject
 class DatabaseResource @Inject()(tsdb: Multiplexus) {
   @GET
   @Path("/status")
-  def status(): Multiplexus.Status = tsdb.status
+  def status(): Multiplexus#Status = tsdb.status
 }

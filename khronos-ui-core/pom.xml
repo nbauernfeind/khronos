@@ -46,5 +46,23 @@
             <groupId>org.webjars</groupId>
             <artifactId>numeral-js</artifactId>
         </dependency>
+
+        <!-- Atmosphere (websockets) -->
+        <dependency>
+            <groupId>org.atmosphere</groupId>
+            <artifactId>atmosphere-runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.atmosphere</groupId>
+            <artifactId>atmosphere-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>jquery-atmosphere</artifactId>
+        </dependency>
     </dependencies>
 </project>

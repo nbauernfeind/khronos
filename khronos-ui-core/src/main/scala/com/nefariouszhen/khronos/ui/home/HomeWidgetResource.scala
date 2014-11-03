@@ -13,7 +13,7 @@ private class BlankWidget extends Widget[Unit] {
   val title: String = "Sample Title"
 }
 
-private class DatabaseWidget(val data: Multiplexus.Status) extends Widget[Multiplexus.Status] {
+private class DatabaseWidget(val data: Multiplexus#Status) extends Widget[Multiplexus#Status] {
   val partial: String = "partials/widgets/db-panel.html"
   val title: String = "Khronos Status"
 }
