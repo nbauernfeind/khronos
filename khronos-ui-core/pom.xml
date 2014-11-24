@@ -57,6 +57,10 @@
             <artifactId>atmosphere-annotations</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.atmosphere</groupId>
+            <artifactId>atmosphere-jersey</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-server</artifactId>
         </dependency>

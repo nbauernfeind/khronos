@@ -11,7 +11,7 @@
     <artifactId>khronos-engine</artifactId>
 
     <name>${project.artifactId}</name>
-    <description>Khronos DB In-Memory Plugin</description>
+    <description>Khronos Engine</description>
 
     <dependencies>
         <!-- Khronos -->

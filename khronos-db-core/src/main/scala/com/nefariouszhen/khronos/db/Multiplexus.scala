@@ -119,13 +119,11 @@ class Multiplexus @Inject()(dao: TimeSeriesDatabaseDAO,
     ret
   }
 
+  def timeseries: Iterable[Seq[KeyValuePair]] = dao.timeseries()
+
   def status: Status = new Status
 
   class Status {
     val isConnected = dao.isConnected
-    val numQueriesActive: Double = Multiplexus.this.numQueriesActive.getLast
-    val numStreamsActive: Double = Multiplexus.this.numStreamsActive.getLast
-    val numInPointsLast30Sec: Double = Multiplexus.this.numInPoints.getLast
-    val numOutPointsLast30Sec: Double = Multiplexus.this.numOutPoints.getLast
   }
 }

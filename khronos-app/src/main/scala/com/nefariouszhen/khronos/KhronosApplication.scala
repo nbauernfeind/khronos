@@ -1,13 +1,25 @@
 package com.nefariouszhen.khronos
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.nefariouszhen.khronos.db.ram.InMemoryTSDBConfiguration
 import com.nefariouszhen.khronos.engine.{KhronosApplicationBase, KhronosConfiguration}
 import com.nefariouszhen.khronos.ui.UiModule
 import com.nefariouszhen.khronos.ui.websocket.WebsocketModule
-import com.nefariouszhen.khronos.util.DropwizardModule
+import com.nefariouszhen.khronos.util.{DropwizardModule, DropwizardPublicModule}
+import io.dropwizard.setup.Environment
+
+class UtilModule(mapper: ObjectMapper) extends DropwizardPublicModule {
+  override def doConfigure(): Unit = {
+    bind[ObjectMapper].toInstance(mapper)
+  }
+
+  override def install(env: Environment): Unit = {
+
+  }
+}
 
 object KhronosApplication extends KhronosApplicationBase[KhronosConfiguration] {
-  def createModules(configuration: KhronosConfiguration): Seq[DropwizardModule[_]] = {
+  def createModules(configuration: KhronosConfiguration, environment: Environment): Seq[DropwizardModule[_]] = {
     if (configuration.db == null) {
       configuration.db = new InMemoryTSDBConfiguration
     }
@@ -15,7 +27,8 @@ object KhronosApplication extends KhronosApplicationBase[KhronosConfiguration] {
     Seq(
       configuration.db.buildModule(),
       new UiModule,
-      new WebsocketModule
+      new WebsocketModule,
+      new UtilModule(environment.getObjectMapper)
     )
   }
 }

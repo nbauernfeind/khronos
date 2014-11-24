@@ -19,6 +19,11 @@ class InMemoryTimeSeriesDatabaseDAO @Inject()(config: InMemoryTSDBConfiguration)
     getTimeSeries(keys, createIfMissing = false).iterator.flatMap(_.read(fromTm))
   }
 
+  /**
+   * List all timeseries.
+   */
+  override def timeseries(): Iterable[Seq[KeyValuePair]] = idMap.keys
+
   private[this] def getTimeSeries(keys: Seq[KeyValuePair], createIfMissing: Boolean): Option[InMemoryStorage] = {
     this.synchronized {
       val k = keys.sorted

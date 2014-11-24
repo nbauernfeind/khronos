@@ -22,4 +22,9 @@ trait TimeSeriesDatabaseDAO {
    * @return       An iterator of data points.
    */
   def read(keys: Seq[KeyValuePair], fromTm: Time): Iterator[TimeSeriesPoint]
+
+  /**
+   * List all timeseries.
+   */
+  def timeseries(): Iterable[Seq[KeyValuePair]]
 }

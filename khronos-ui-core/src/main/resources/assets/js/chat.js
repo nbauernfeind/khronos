@@ -13,7 +13,7 @@ $(function () {
     var transport = 'websocket';
 
     // We are now ready to cut the request
-    var request = { url: '/chat/',
+    var request = { url: '/ws/',
         contentType : "application/json",
         logLevel : 'debug',
         transport : transport ,
@@ -25,7 +25,7 @@ $(function () {
     request.onOpen = function(response) {
         content.html($('<p>', { text: 'Atmosphere connected using ' + response.transport }));
         input.removeAttr('disabled').focus();
-        status.text('Choose name:');
+        status.text('KVP to watch:');
         transport = response.transport;
 
         // Carry the UUID. This is required if you want to call subscribe(request) again.
@@ -58,6 +58,7 @@ $(function () {
         var message = response.responseBody;
         try {
             var json = JSON.parse(message);
+            console.log("Received: ", json);
         } catch (e) {
             console.log('This doesn\'t look like a valid JSON: ', message);
             console.log(e);
@@ -69,17 +70,13 @@ $(function () {
             logged = true;
             status.text(myName + ': ').css('color', 'blue');
         } else {
-            var me = json.author == author;
             var date = typeof(json.time) == 'string' ? parseInt(json.time) : json.time;
-            addMessage(json.author, json.message, me ? 'blue' : 'black', new Date(date));
+            addMessage(json.tsp.tm, json.tsp.value, 'black', new Date(date));
         }
     };
 
     request.onClose = function(response) {
         content.html($('<p>', { text: 'Server closed the connection after a timeout' }));
-        if (subSocket) {
-            subSocket.push(JSON.stringify({ author: author, message: 'disconnecting' }));
-        }
         input.attr('disabled', 'disabled');
     };
 
@@ -96,22 +93,19 @@ $(function () {
 
     subSocket = socket.subscribe(request);
 
+    var cnt = 0;
+
     input.keydown(function(e) {
         if (e.keyCode === 13) {
             var msg = $(this).val();
 
-            // First message is always the author's name
-            if (author == null) {
-                author = msg;
-            }
+            subSocket.push(JSON.stringify({ sid: cnt, keys: JSON.parse(msg) }));
 
-            subSocket.push(JSON.stringify({ author: author, message: msg }));
+            cnt += 1;
+
             $(this).val('');
 
             input.attr('disabled', 'disabled');
-            if (myName === false) {
-                myName = msg;
-            }
         }
     });
 

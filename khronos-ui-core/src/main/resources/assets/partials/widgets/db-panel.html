@@ -1,28 +1,30 @@
+<div ng-controller="dbPanelCtrl">
+
 <div class="widget home stats">
     <div class="hero-widget well well-sm">
         <div class="text">
-            <var>{{widget.numQueriesActive | asHumanFriendlyNumber }}</var>
+            <var>{{numQueriesActive | asHumanFriendlyNumber }}</var>
             <label class="text-muted">Queries Active</label>
         </div>
     </div>
 
     <div class="hero-widget well well-sm">
         <div class="text">
-            <var>{{widget.numStreamsActive | asHumanFriendlyNumber }}</var>
+            <var>{{numStreamsActive | asHumanFriendlyNumber }}</var>
             <label class="text-muted">Streams Active</label>
         </div>
     </div>
 
     <div class="hero-widget well well-sm">
         <div class="text">
-            <var>{{widget.numInPointsLast30Sec | asHumanFriendlyNumber }}</var>
+            <var>{{numInPoints | asHumanFriendlyNumber }}</var>
             <label class="text-muted">Collected in 30s</label>
         </div>
     </div>
 
     <div class="hero-widget well well-sm">
         <div class="text">
-            <var>{{widget.numOutPointsLast30Sec | asHumanFriendlyNumber }}</var>
+            <var>{{numOutPoints | asHumanFriendlyNumber }}</var>
             <label class="text-muted">Extracted in 30s</label>
         </div>
     </div>
@@ -31,4 +33,6 @@
 <div class="widget home status">
     <div ng-hide="widget.isConnected"><i class="fa fa-exclamation-circle text-danger"></i> Database is disconnected.</div>
     <div ng-show="widget.isConnected"><i class="fa fa-check-circle text-success"></i> Database is connected.</div>
+</div>
+
 </div>
