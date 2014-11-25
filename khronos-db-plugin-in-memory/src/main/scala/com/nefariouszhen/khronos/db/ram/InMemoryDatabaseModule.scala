@@ -1,7 +1,7 @@
 package com.nefariouszhen.khronos.db.ram
 
 import com.fasterxml.jackson.annotation.{JsonProperty, JsonTypeName}
-import com.nefariouszhen.khronos.db.{DatabaseConfiguration, DatabaseModule, TimeSeriesDatabaseDAO}
+import com.nefariouszhen.khronos.db.{TimeSeriesMappingDAO, DatabaseConfiguration, DatabaseModule, TimeSeriesDatabaseDAO}
 import com.nefariouszhen.khronos.util.DropwizardModule
 
 @JsonTypeName("in-memory")
@@ -17,6 +17,10 @@ class InMemoryDatabaseModule(config: InMemoryTSDBConfiguration) extends Database
     super.doConfigure()
 
     bind[InMemoryTSDBConfiguration].toInstance(config)
+
+    bind[InMemoryTimeSeriesMappingDAO].asEagerSingleton()
+    bind[TimeSeriesMappingDAO].to[InMemoryTimeSeriesMappingDAO]
+
     bind[InMemoryTimeSeriesDatabaseDAO].asEagerSingleton()
     bind[TimeSeriesDatabaseDAO].to[InMemoryTimeSeriesDatabaseDAO]
   }

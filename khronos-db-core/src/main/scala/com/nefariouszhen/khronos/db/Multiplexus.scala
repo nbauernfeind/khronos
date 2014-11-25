@@ -50,8 +50,7 @@ object Multiplexus {
   }
 }
 
-class Multiplexus @Inject()(dao: TimeSeriesDatabaseDAO,
-                            registry: MetricsRegistry,
+class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabaseDAO, registry: MetricsRegistry,
                             executor: ScheduledExecutorService) extends Managed {
 
   import com.nefariouszhen.khronos.KeyValuePair._
@@ -61,15 +60,17 @@ class Multiplexus @Inject()(dao: TimeSeriesDatabaseDAO,
   private[this] val taskFuture = new AtomicReference[Option[ScheduledFuture[_]]](None)
 
   private[this] val streamCount = new AtomicLong()
-  private[this] val entryPoints = mutable.HashMap[Seq[KeyValuePair], ListenerSet]()
+  private[this] val entryPoints = mutable.HashMap[Int, ListenerSet]()
 
-  /** Metrics **/
-  private[this] def newKey(hd: KeyValuePair) = List(hd, "app" -> "khronos", "system" -> "multiplexus")
+  /** Multiplexus Metrics **/
+  private[this] val metrics = new {
+    private[this] def newKey(hd: KeyValuePair) = List(hd, "app" -> "khronos", "system" -> "multiplexus")
 
-  private[this] val numInPoints = registry.newCounter(newKey("type" -> "numInPoints"))
-  private[this] val numOutPoints = registry.newCounter(newKey("type" -> "numOutPoints"))
-  private[this] val numQueriesActive = registry.newMeter(newKey("type" -> "numQueriesActive"), entryPoints.size)
-  private[this] val numStreamsActive = registry.newMeter(newKey("type" -> "numStreamsActive"), streamCount.get)
+    val numInPoints = registry.newCounter(newKey("type" -> "numInPoints"))
+    val numOutPoints = registry.newCounter(newKey("type" -> "numOutPoints"))
+    val numQueriesActive = registry.newMeter(newKey("type" -> "numQueriesActive"), entryPoints.size)
+    val numStreamsActive = registry.newMeter(newKey("type" -> "numStreamsActive"), streamCount.get)
+  }
 
   def start(): Unit = {
     val newFuture = executor.scheduleAtFixedRate(
@@ -86,14 +87,14 @@ class Multiplexus @Inject()(dao: TimeSeriesDatabaseDAO,
   }
 
   def write(rawKeys: Seq[KeyValuePair], tm: Time, value: Double): Unit = {
-    val keys = rawKeys.sorted
-    dao.write(keys, tm, value)
-    numInPoints.incrementAndGet()
+    val id = idMap.getIdOrCreate(rawKeys.sorted)
+    dao.write(id, tm, value)
+    metrics.numInPoints.incrementAndGet()
 
     for (listenerSet <- this.synchronized {
-      entryPoints.get(keys)
+      entryPoints.get(id)
     }) {
-      numOutPoints.addAndGet(listenerSet.deliver(TimeSeriesPoint(tm, value)))
+      metrics.numOutPoints.addAndGet(listenerSet.deliver(TimeSeriesPoint(tm, value)))
     }
   }
 
@@ -112,18 +113,21 @@ class Multiplexus @Inject()(dao: TimeSeriesDatabaseDAO,
       }
     }
 
+    // TODO: This is not what I really want, eventually a query should span multiple time series.
+    // (and we shouldn't create an id for an unknown kvp seq)
+    val id = idMap.getIdOrCreate(query.rawKeys.sorted)
     this.synchronized {
-      entryPoints.getOrElseUpdate(query.rawKeys.sorted, new ListenerSet()).add(ret)
+      entryPoints.getOrElseUpdate(id, new ListenerSet()).add(ret)
     }
 
     ret
   }
 
-  def timeseries: Iterable[Seq[KeyValuePair]] = dao.timeseries()
+  def timeseries: Iterable[Seq[KeyValuePair]] = idMap.timeSeries().map(_.kvps)
 
   def status: Status = new Status
 
   class Status {
-    val isConnected = dao.isConnected
+    val isConnected = dao.isConnected && idMap.isConnected
   }
 }

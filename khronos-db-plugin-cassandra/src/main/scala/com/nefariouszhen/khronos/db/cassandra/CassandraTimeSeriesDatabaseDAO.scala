@@ -6,7 +6,7 @@ import com.nefariouszhen.khronos.{KeyValuePair, Time, TimeSeriesPoint}
 class CassandraTimeSeriesDatabaseDAO extends TimeSeriesDatabaseDAO {
   override def isConnected: Boolean = ???
 
-  override def write(keys: Seq[KeyValuePair], tm: Time, value: Double): Unit = ???
+  override def write(id: Int, tm: Time, value: Double): Unit = ???
 
-  override def read(keys: Seq[KeyValuePair], fromTm: Time): Iterator[TimeSeriesPoint] = ???
+  override def read(id: Int, fromTm: Time): Iterator[TimeSeriesPoint] = ???
 }
