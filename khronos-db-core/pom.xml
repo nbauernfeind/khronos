@@ -82,5 +82,11 @@
             <groupId>net.codingwell</groupId>
             <artifactId>scala-guice_${scala.binary.version}</artifactId>
         </dependency>
+
+        <!-- Algorithmic -->
+        <dependency>
+            <groupId>com.nefariouszhen.trie</groupId>
+            <artifactId>scala-burst-trie_${scala.binary.version}</artifactId>
+        </dependency>
     </dependencies>
 </project>

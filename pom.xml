@@ -192,6 +192,13 @@
                 <version>${atmosphere.version}</version>
             </dependency>
 
+            <!-- Algorithmic -->
+            <dependency>
+                <groupId>com.nefariouszhen.trie</groupId>
+                <artifactId>scala-burst-trie_${scala.binary.version}</artifactId>
+                <version>0.2</version>
+            </dependency>
+
             <!-- Test -->
             <dependency>
                 <groupId>org.scalatest</groupId>

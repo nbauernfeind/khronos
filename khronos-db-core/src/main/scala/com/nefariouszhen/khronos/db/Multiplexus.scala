@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong, AtomicReference}
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
 import com.google.inject.Inject
+import com.nefariouszhen.khronos.metrics.MetricsRegistry
 import com.nefariouszhen.khronos.util.SafeRunnable
 import com.nefariouszhen.khronos.{KeyValuePair, Time, TimeSeriesPoint}
 import io.dropwizard.lifecycle.Managed
@@ -64,17 +65,19 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
 
   /** Multiplexus Metrics **/
   private[this] val metrics = new {
-    private[this] def newKey(hd: KeyValuePair) = List(hd, "app" -> "khronos", "system" -> "multiplexus")
+    private[this] def newKey(typ: String) = List("type" -> typ, "app" -> "khronos", "system" -> "multiplexus")
 
-    val numInPoints = registry.newCounter(newKey("type" -> "numInPoints"))
-    val numOutPoints = registry.newCounter(newKey("type" -> "numOutPoints"))
-    val numQueriesActive = registry.newMeter(newKey("type" -> "numQueriesActive"), entryPoints.size)
-    val numStreamsActive = registry.newMeter(newKey("type" -> "numStreamsActive"), streamCount.get)
+    val numInPoints = registry.newCounter(newKey("numInPoints"))
+    val numOutPoints = registry.newCounter(newKey("numOutPoints"))
+    val writeTm = registry.newTimer(newKey("writeTm"))
+
+    registry.newMeter(newKey("numQueriesActive"), entryPoints.size)
+    registry.newMeter(newKey("numStreamsActive"), streamCount.get)
   }
 
   def start(): Unit = {
     val newFuture = executor.scheduleAtFixedRate(
-      new SafeRunnable(log, registry.writeMetrics(this)),
+      new SafeRunnable(log, registry.writeMetrics(write)),
       (WRITE_DELAY_SECONDS - (System.currentTimeMillis() / 1e3).toLong) % WRITE_DELAY_SECONDS,
       WRITE_DELAY_SECONDS,
       TimeUnit.SECONDS
@@ -86,15 +89,15 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
     taskFuture.getAndSet(None).foreach(_.cancel(false))
   }
 
-  def write(rawKeys: Seq[KeyValuePair], tm: Time, value: Double): Unit = {
+  def write(rawKeys: Seq[KeyValuePair], tm: Time, value: Double): Unit = metrics.writeTm.time {
     val id = idMap.getIdOrCreate(rawKeys.sorted)
     dao.write(id, tm, value)
-    metrics.numInPoints.incrementAndGet()
+    metrics.numInPoints.increment()
 
     for (listenerSet <- this.synchronized {
       entryPoints.get(id)
     }) {
-      metrics.numOutPoints.addAndGet(listenerSet.deliver(TimeSeriesPoint(tm, value)))
+      metrics.numOutPoints.increment(listenerSet.deliver(TimeSeriesPoint(tm, value)))
     }
   }
 

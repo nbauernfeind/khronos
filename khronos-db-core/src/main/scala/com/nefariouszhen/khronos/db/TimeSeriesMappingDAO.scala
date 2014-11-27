@@ -4,7 +4,9 @@ import java.io.Closeable
 
 import com.nefariouszhen.khronos.KeyValuePair
 
-case class TimeSeriesMapping(id: Int, kvps: Seq[KeyValuePair])
+case class TimeSeriesMapping(id: Int, kvps: Seq[KeyValuePair]) extends Ordered[TimeSeriesMapping] {
+  override def compare(that: TimeSeriesMapping): Int = id.compare(that.id)
+}
 
 trait TimeSeriesMappingDAO {
   def isConnected: Boolean
