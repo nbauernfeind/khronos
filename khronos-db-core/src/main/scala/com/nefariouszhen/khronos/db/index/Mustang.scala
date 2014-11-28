@@ -26,8 +26,10 @@ case class AutoCompleteResult(q: String, sz: Int)
 object Mustang {
   type TSID = Int
 
-  val WILDCARD = """([a-zA-Z0-9]+:?[a-zA-Z0-9]*)\*""".r
   val EXACT = """([a-zA-Z0-9]+):([a-zA-Z0-9]+)""".r
+  val WILDCARD = """([a-zA-Z0-9]+:?[a-zA-Z0-9]*)\*""".r
+  val KEY_ONLY = """([a-zA-Z0-9]*)""".r
+  val SPLIT = """([a-zA-Z0-9]+):([a-zA-Z0-9]*)""".r
 }
 
 // Mustang is an index that makes it easier for a human to explore and concisely represent metrics.
@@ -91,29 +93,28 @@ class Mustang @Inject()(db: TimeSeriesMappingDAO, registry: MetricsRegistry) ext
   }
 
   def query(filters: Iterable[PartialQuery],
-            partial: PartialQuery,
+            incompletePartial: PartialQuery,
             numResults: Int = 10): Iterable[AutoCompleteResult] = acquire(rwLock.readLock, metrics.queryTm) {
     metrics.numQueries.increment()
 
     val resolvedFilters = filters.map(resolve)
     val filter = ContentGroup.intersection(resolvedFilters)
-    if (filter.isEmpty) return Iterable()
+    if (resolvedFilters.nonEmpty && filter.isEmpty) return Iterable()
 
-    resolveCompletions(partial)
-      .map(ac => ac.pq -> ac).toMap
-      .mapValues(resolve)
-      .mapValues(Array(filter, _))
-      // TODO: Consider counting the intersection instead of generating it.
-      .mapValues(ContentGroup.intersection(_).size)
-      .map(AutoCompleteResult.apply)
-      .filter(_.sz > 0)
-      .take(10)
+    val results = for (partial <- resolveCompletions(incompletePartial)) yield {
+      val group = resolve(partial)
+      val intersection = if (filters.nonEmpty) ContentGroup.intersection(Array(filter, group)) else group
+      AutoCompleteResult(partial.pq, intersection.size)
+    }
+
+    results.filter(_.sz > 0).take(10).toIterable
   }
 
   private[this] def resolveCompletions(partial: PartialQuery): Iterator[PartialQuery] = acquire(rwLock.readLock) {
-    partial.pq.split(":").toList match {
-      case key :: Nil => keyTrie.query(key).map(s => PartialQuery(s"$s:*"))
-      case key :: value :: Nil => valTrie.query(partial.pq).map(kvp => PartialQuery(kvp.toString))
+    partial.pq match {
+      case KEY_ONLY(_) => keyTrie.query(partial.pq).map(s => PartialQuery(s"$s:*"))
+      case SPLIT(_, _) => valTrie.query(partial.pq).map(s => PartialQuery(s"$s"))
+      case WILDCARD(_) => Iterator(partial) // If manually specified, don't expand the wildcard.
       case _ => Iterator()
     }
   }
@@ -142,7 +143,9 @@ class Mustang @Inject()(db: TimeSeriesMappingDAO, registry: MetricsRegistry) ext
       }
       if (timer != null) timer.time {
         thunk
-      } else thunk
+      } else {
+        thunk
+      }
     } finally {
       l.unlock()
     }

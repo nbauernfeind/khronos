@@ -44,6 +44,7 @@ object MetricsRegistry {
     private[MetricsRegistry] def getValue: CodaTimer = underlying.getAndSet(new CodaTimer)
 
     def time(): CodaTimer.Context = underlying.get().time()
+
     def time[T](thunk: => T): T = {
       val context = time()
       try {
@@ -80,7 +81,7 @@ class MetricsRegistry {
     "app" -> "khronos",
     "system" -> "registry",
     "type" -> "writeTime",
-    "unit" -> "ms"
+    "units" -> "ms"
   ))
 
   def writeMetrics(write: (Seq[KeyValuePair], Time, Double) => Unit): Unit = this.synchronized {
@@ -91,11 +92,13 @@ class MetricsRegistry {
       case m: Counter => write(keys, tm, m.getValue)
       case m: Timer =>
         val t = m.getValue
+        val snapshot = t.getSnapshot
 
         val keyArr = mutable.ArrayBuffer(keys: _*)
         keyArr += "units" -> "seconds"
+
         val valTypeIdx = keyArr.length
-        val snapshot = t.getSnapshot
+        keyArr += "type" -> "ignore"
 
         implicit class WriteHelper(value: Double) {
           def ->(typ: String): Unit = {
