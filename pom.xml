@@ -11,7 +11,7 @@
     <description>Khronos is a time series system worth your ms.</description>
 
     <properties>
-        <scala.version>2.11.3</scala.version>
+        <scala.version>2.11.4</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
         <atmosphere.version>2.2.3</atmosphere.version>
         <dropwizard.version>0.7.1</dropwizard.version>
@@ -29,6 +29,7 @@
         <module>khronos-db-plugin-in-memory</module>
         <module>khronos-engine</module>
         <module>khronos-ui-core</module>
+        <module>khronos-websocket-core</module>
     </modules>
 
     <dependencyManagement>

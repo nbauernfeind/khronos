@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.google.inject.{Guice, Provides, Singleton}
 import com.nefariouszhen.khronos.util.AssistedFactoryPublicModule
+import com.nefariouszhen.khronos.websocket.{WebSocketWriter, WebSocketState, WebSocketRequest, WebSocketManager}
 import io.dropwizard.jackson.Jackson
 import net.codingwell.scalaguice.InjectorExtensions._
 import org.atmosphere.websocket.WebSocket

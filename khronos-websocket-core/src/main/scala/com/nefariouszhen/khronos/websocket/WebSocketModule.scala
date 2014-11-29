@@ -1,4 +1,4 @@
-package com.nefariouszhen.khronos.ui.websocket
+package com.nefariouszhen.khronos.websocket
 
 import com.google.inject.{Provides, Singleton}
 import com.nefariouszhen.khronos.util.DropwizardPrivateModule
@@ -10,7 +10,10 @@ class WebSocketModule extends DropwizardPrivateModule {
     bind[GuiceObjectFactory].asEagerSingleton()
     bind[AtmosphereObjectFactory].to[GuiceObjectFactory]
 
+    bindFactory[WebSocketState, WebSocketState.Factory]()
     bind[WebSocketManager].asEagerSingleton()
+
+    expose[WebSocketManager]
   }
 
   @Provides

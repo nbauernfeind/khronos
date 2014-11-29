@@ -8,43 +8,41 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>khronos-ui-core</artifactId>
+    <artifactId>khronos-websocket-core</artifactId>
 
     <name>${project.artifactId}</name>
-    <description>Khronos UI Core</description>
+    <description>Khronos WebSocket Core</description>
 
     <dependencies>
         <!-- Khronos -->
         <dependency>
             <groupId>com.nefariouszhen.khronos</groupId>
-            <artifactId>khronos-engine</artifactId>
+            <artifactId>khronos-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- WebJars -->
+        <!-- Scala -->
         <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>angularjs</artifactId>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+        </dependency>
+
+        <!-- Atmosphere -->
+        <dependency>
+            <groupId>org.atmosphere</groupId>
+            <artifactId>atmosphere-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.atmosphere</groupId>
+            <artifactId>atmosphere-jersey</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-server</artifactId>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
-            <artifactId>bootstrap</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>font-awesome</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>d3js</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>jquery</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>numeral-js</artifactId>
+            <artifactId>jquery-atmosphere</artifactId>
         </dependency>
 
         <!-- Test -->

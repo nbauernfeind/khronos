@@ -27,6 +27,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.nefariouszhen.khronos</groupId>
+            <artifactId>khronos-websocket-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Dropwizard -->
         <dependency>
             <groupId>io.dropwizard</groupId>

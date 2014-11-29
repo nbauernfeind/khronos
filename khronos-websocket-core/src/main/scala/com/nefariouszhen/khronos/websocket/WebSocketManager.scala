@@ -1,4 +1,4 @@
-package com.nefariouszhen.khronos.ui.websocket
+package com.nefariouszhen.khronos.websocket
 
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
