@@ -150,7 +150,7 @@ khronosApp.factory('DataStream', ['$q', '$rootScope', function($q, $rootScope) {
         }
     }
 
-    function sendRequest($scope, request, callback) {
+    Service.sendRequest = function($scope, request, callback) {
         request.callbackId = getCallbackId();
         callbacks[request.callbackId] = {
             scope: $scope,
@@ -162,7 +162,7 @@ khronosApp.factory('DataStream', ['$q', '$rootScope', function($q, $rootScope) {
         if (Service.isConnected) {
             doSendRequest(callbacks[request.callbackId]);
         }
-    }
+    };
 
     Service.subscribeMetric = function($scope, query, callback) {
         var request = {
@@ -171,7 +171,7 @@ khronosApp.factory('DataStream', ['$q', '$rootScope', function($q, $rootScope) {
             query: query
         };
 
-        return sendRequest($scope, request, callback);
+        return Service.sendRequest($scope, request, callback);
     };
 
     // Start Service!
