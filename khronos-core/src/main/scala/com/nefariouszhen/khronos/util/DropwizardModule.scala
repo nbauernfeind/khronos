@@ -25,7 +25,7 @@ trait DropwizardModule[B <: Binder] extends Module {
   def instance[T: Manifest] = injector.instance[T]
 }
 
-abstract class DropwizardPublicModule extends ScalaModule with DropwizardModule[Binder] {
+abstract class AssistedFactoryPublicModule extends ScalaModule {
   protected[this] def bindFactory[C: Manifest, F: Manifest]() {
     bindFactory[C, C, F]()
   }
@@ -37,7 +37,7 @@ abstract class DropwizardPublicModule extends ScalaModule with DropwizardModule[
   }
 }
 
-abstract class DropwizardPrivateModule extends ScalaPrivateModule with DropwizardModule[PrivateBinder] {
+abstract class AssistedFactoryPrivateModule extends ScalaPrivateModule {
   protected[this] def bindFactory[C: Manifest, F: Manifest]() {
     bindFactory[C, C, F]()
   }
@@ -48,3 +48,6 @@ abstract class DropwizardPrivateModule extends ScalaPrivateModule with Dropwizar
       .build(typeLiteral[F]))
   }
 }
+
+abstract class DropwizardPublicModule extends AssistedFactoryPublicModule with DropwizardModule[Binder]
+abstract class DropwizardPrivateModule extends AssistedFactoryPrivateModule with DropwizardModule[PrivateBinder]

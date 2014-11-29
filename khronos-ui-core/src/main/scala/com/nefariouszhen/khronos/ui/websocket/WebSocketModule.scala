@@ -5,12 +5,12 @@ import com.nefariouszhen.khronos.util.DropwizardPrivateModule
 import io.dropwizard.setup.Environment
 import org.atmosphere.cpr.{ApplicationConfig, AtmosphereObjectFactory, AtmosphereServlet, BroadcasterFactory}
 
-class WebsocketModule extends DropwizardPrivateModule {
+class WebSocketModule extends DropwizardPrivateModule {
   override def doConfigure(): Unit = {
     bind[GuiceObjectFactory].asEagerSingleton()
     bind[AtmosphereObjectFactory].to[GuiceObjectFactory]
 
-    bind[WebsocketManager].asEagerSingleton()
+    bind[WebSocketManager].asEagerSingleton()
   }
 
   @Provides
