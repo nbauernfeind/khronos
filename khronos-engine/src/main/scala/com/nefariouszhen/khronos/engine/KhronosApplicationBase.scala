@@ -3,7 +3,7 @@ package com.nefariouszhen.khronos.engine
 import com.bazaarvoice.dropwizard.assets.{AssetsBundleConfiguration, AssetsConfiguration, ConfiguredAssetsBundle}
 import com.bazaarvoice.dropwizard.redirect.{RedirectBundle, UriRedirect}
 import com.bazaarvoice.dropwizard.webjars.WebJarBundle
-import com.fasterxml.jackson.annotation.{JsonIgnore, JsonIgnoreProperties, JsonProperty}
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.inject.Guice
 import com.massrelevance.dropwizard.ScalaApplication
 import com.massrelevance.dropwizard.bundles.ScalaBundle
