@@ -6,7 +6,7 @@ import com.nefariouszhen.khronos.util.DropwizardModule
 
 @JsonTypeName("cassandra")
 class CassandraTSDBConfiguration extends DatabaseConfiguration {
-  override def buildModule(): DropwizardModule[_] = new CassandraDatabaseModule
+  override def buildModule(): DatabaseModule = new CassandraDatabaseModule
 }
 
 class CassandraDatabaseModule extends DatabaseModule {

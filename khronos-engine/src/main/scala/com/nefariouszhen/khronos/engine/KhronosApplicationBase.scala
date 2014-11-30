@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.{JsonIgnore, JsonIgnoreProperties, JsonP
 import com.google.inject.Guice
 import com.massrelevance.dropwizard.ScalaApplication
 import com.massrelevance.dropwizard.bundles.ScalaBundle
+import com.nefariouszhen.khronos.KhronosExtensionConfiguration
 import com.nefariouszhen.khronos.db.DatabaseConfiguration
 import com.nefariouszhen.khronos.util.DropwizardModule
 import io.dropwizard.Configuration
@@ -19,6 +20,9 @@ class KhronosConfiguration extends Configuration with AssetsBundleConfiguration 
 
   @JsonProperty
   var db: DatabaseConfiguration = null
+
+  @JsonProperty
+  val extensions = Array[KhronosExtensionConfiguration]()
 }
 
 abstract class KhronosApplicationBase[T <: KhronosConfiguration] extends ScalaApplication[T] {

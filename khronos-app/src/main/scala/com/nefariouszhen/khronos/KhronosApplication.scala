@@ -8,6 +8,8 @@ import com.nefariouszhen.khronos.util.{DropwizardModule, DropwizardPublicModule}
 import com.nefariouszhen.khronos.websocket.WebSocketModule
 import io.dropwizard.setup.Environment
 
+import scala.collection.mutable
+
 class UtilModule(mapper: ObjectMapper) extends DropwizardPublicModule {
   override def doConfigure(): Unit = {
     bind[ObjectMapper].toInstance(mapper)
@@ -24,11 +26,17 @@ object KhronosApplication extends KhronosApplicationBase[KhronosConfiguration] {
       configuration.db = new InMemoryTSDBConfiguration
     }
 
-    Seq(
+    val modules = mutable.Seq.newBuilder[DropwizardModule[_]]
+
+    modules ++= Seq(
       configuration.db.buildModule(),
       new UiModule,
       new WebSocketModule,
       new UtilModule(environment.getObjectMapper)
     )
+
+    modules ++= configuration.extensions.map(_.buildModule())
+
+    modules.result()
   }
 }

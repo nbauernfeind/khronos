@@ -54,6 +54,6 @@ Not implemented yet!
 
 ## Plugin Architecture
 
-Khronos was designed with you in mind. I understand that your infrastructure doesn't directly map to mine. I also
+Khronos was designed with you in mind. Everyone's infrastructure differs; there are no magic bullets. I also
 expect that people will come up with way better ideas than the ones I've put into this project. Khronos was designed,
 from the ground up, with a plugin architecture in mind.
