@@ -8,6 +8,7 @@ import com.nefariouszhen.khronos.KeyValuePair
 import com.nefariouszhen.khronos.db.{TimeSeriesMapping, TimeSeriesMappingDAO}
 import com.nefariouszhen.khronos.metrics.MetricsRegistry
 import com.nefariouszhen.khronos.metrics.MetricsRegistry.Timer
+import com.nefariouszhen.khronos.websocket.WebSocketManager
 import net.codingwell.scalaguice.ScalaModule
 import org.junit.Test
 import org.mockito.Mockito._
@@ -38,6 +39,12 @@ class MustangTest extends TestMatchers {
       override def configure(): Unit = {
         binder.requireExplicitBindings()
         bind[Mustang].asEagerSingleton()
+      }
+
+      @Provides
+      @inject.Singleton
+      def mockWebSocketManager(): WebSocketManager = {
+        mock(classOf[WebSocketManager])
       }
 
       @Provides
@@ -73,13 +80,13 @@ class MustangTest extends TestMatchers {
     }
 
     def emptyQuery(numResults: Int = 10): Iterable[AutoCompleteResult] = {
-      mustang.query(Iterable(), PartialQuery(""), numResults)
+      mustang.query(AutoCompleteRequest(Seq(), "", Some(numResults)))
     }
   }
 
   @Test
   def shouldStartEmpty(): Unit = new DataSet {
-    mustang.query(Iterable(), PartialQuery("")) should have size 0
+    mustang.query(AutoCompleteRequest(Seq(), "", None)) should have size 0
   }
 
   @Test
@@ -87,7 +94,7 @@ class MustangTest extends TestMatchers {
     val keys = List("type", "valtype", "app", "system", "units")
     for (key <- keys) {
       registerMapping(KeyValuePair(key, "a"))
-      emptyQuery().map(_.q) should beSorted[String]
+      emptyQuery().map(_.tag) should beSorted[String]
     }
 
     emptyQuery() should have size keys.size
@@ -101,10 +108,10 @@ class MustangTest extends TestMatchers {
     }
 
     for (key <- keys) {
-      val result = mustang.query(Iterable(), PartialQuery(key.substring(0, 1)))
+      val result = mustang.query(AutoCompleteRequest(Seq(), key.substring(0, 1), None))
       result should have size 1
-      result.head.sz should equal(1)
-      result.head.q should startWith(key)
+      result.head.numMatches should equal(1)
+      result.head.tag should startWith(key)
     }
   }
 
@@ -116,10 +123,10 @@ class MustangTest extends TestMatchers {
     }
 
     for (key <- keys) {
-      val result = mustang.query(Iterable(), PartialQuery(s"$key:"))
+      val result = mustang.query(AutoCompleteRequest(Seq(), s"$key:", None))
       result should have size 1
-      result.head.sz should equal(1)
-      result.head.q should equal(s"$key:a")
+      result.head.numMatches should equal(1)
+      result.head.tag should equal(s"$key:a")
     }
   }
 }

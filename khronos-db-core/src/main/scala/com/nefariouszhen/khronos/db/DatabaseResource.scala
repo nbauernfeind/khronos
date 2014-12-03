@@ -1,11 +1,11 @@
 package com.nefariouszhen.khronos.db
 
 import javax.ws.rs.core.MediaType
-import javax.ws.rs.{QueryParam, GET, Path, Produces}
+import javax.ws.rs.{GET, Path, Produces, QueryParam}
 
 import com.google.inject.Inject
 import com.nefariouszhen.khronos.KeyValuePair
-import com.nefariouszhen.khronos.db.index.{PartialQuery, AutoCompleteResult, Mustang}
+import com.nefariouszhen.khronos.db.index.{AutoCompleteRequest, AutoCompleteResult, Mustang}
 
 @Path("/1/db")
 @Produces(Array(MediaType.APPLICATION_JSON))
@@ -21,12 +21,12 @@ class DatabaseResource @Inject()(tsdb: Multiplexus, index: Mustang) {
   @GET
   @Path("/autocomplete")
   def autocomplete(@QueryParam("q") query: String): Iterable[AutoCompleteResult] = {
-    val pqs = query.split(" ").map(PartialQuery.apply)
+    val chunks = query.split(" ")
     if (query.endsWith(" ")) {
-      index.query(pqs, PartialQuery(""))
+      index.query(AutoCompleteRequest(chunks, "", None))
     } else {
-      val pq = pqs.lastOption.getOrElse(PartialQuery(""))
-      index.query(pqs.slice(0, pqs.length - 1), pq)
+      val partial = chunks.lastOption.getOrElse("")
+      index.query(AutoCompleteRequest(chunks.slice(0, chunks.length - 1), partial, None))
     }
   }
 }

@@ -5,12 +5,14 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.{Lock, ReentrantReadWriteLock}
 
+import com.fasterxml.jackson.annotation.JsonTypeName
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.google.inject.Inject
 import com.nefariouszhen.khronos.KeyValuePair
 import com.nefariouszhen.khronos.db.{TimeSeriesMapping, TimeSeriesMappingDAO}
 import com.nefariouszhen.khronos.metrics.MetricsRegistry
 import com.nefariouszhen.khronos.metrics.MetricsRegistry.Timer
+import com.nefariouszhen.khronos.websocket.{WebSocketWriter, WebSocketRequest, WebSocketManager}
 import com.nefariouszhen.trie.BurstTrie
 import io.dropwizard.lifecycle.Managed
 
@@ -20,8 +22,9 @@ object AutoCompleteResult {
   def apply(t: Tuple2[String, Int]): AutoCompleteResult = AutoCompleteResult(t._1, t._2)
 }
 
-case class PartialQuery(pq: String)
-case class AutoCompleteResult(q: String, sz: Int)
+case class AutoCompleteResult(tag: String, numMatches: Int)
+@JsonTypeName("metric-typeahead")
+case class AutoCompleteRequest(tags: Seq[String], tagQuery: String, numResults: Option[Int]) extends WebSocketRequest
 
 object Mustang {
   type TSID = Int
@@ -69,6 +72,15 @@ class Mustang @Inject()(db: TimeSeriesMappingDAO, registry: MetricsRegistry) ext
     registry.newMeter(newKey("prefixCacheSize"), prefixCache.size)
   }
 
+  @Inject
+  private[this] def registerWebHooks(ws: WebSocketManager): Unit = {
+    ws.registerCallback(onIndexRequest)
+  }
+
+  private[this] def onIndexRequest(writer: WebSocketWriter, request: AutoCompleteRequest): Unit = {
+    writer.write(query(request))
+  }
+
   override def start(): Unit = acquire(rwLock.writeLock) {
     tsFuture.getAndSet(Some(db.subscribe(newTimeSeries))).map(_.close())
     db.timeSeries().foreach(newTimeSeries)
@@ -79,8 +91,8 @@ class Mustang @Inject()(db: TimeSeriesMappingDAO, registry: MetricsRegistry) ext
     prefixCache.invalidateAll()
   }
 
-  def resolve(partial: PartialQuery): ContentGroup[TSID] = acquire(rwLock.readLock, metrics.resolveTm) {
-    val resOption = partial.pq match {
+  def resolve(partial: String): ContentGroup[TSID] = acquire(rwLock.readLock, metrics.resolveTm) {
+    val resOption = partial match {
       case WILDCARD(prefix) =>
         val res = prefixCache.get(prefix)
         if (res.isEmpty) prefixCache.invalidate(res)
@@ -92,28 +104,26 @@ class Mustang @Inject()(db: TimeSeriesMappingDAO, registry: MetricsRegistry) ext
     resOption.getOrElse(ContentGroup.empty)
   }
 
-  def query(filters: Iterable[PartialQuery],
-            incompletePartial: PartialQuery,
-            numResults: Int = 10): Iterable[AutoCompleteResult] = acquire(rwLock.readLock, metrics.queryTm) {
+  def query(request: AutoCompleteRequest): Iterable[AutoCompleteResult] = acquire(rwLock.readLock, metrics.queryTm) {
     metrics.numQueries.increment()
 
-    val resolvedFilters = filters.map(resolve)
+    val resolvedFilters = request.tags.map(resolve)
     val filter = ContentGroup.intersection(resolvedFilters)
     if (resolvedFilters.nonEmpty && filter.isEmpty) return Iterable()
 
-    val results = for (partial <- resolveCompletions(incompletePartial)) yield {
+    val results = for (partial <- resolveCompletions(request.tagQuery)) yield {
       val group = resolve(partial)
-      val intersection = if (filters.nonEmpty) ContentGroup.intersection(Array(filter, group)) else group
-      AutoCompleteResult(partial.pq, intersection.size)
+      val intersection = if (request.tags.nonEmpty) ContentGroup.intersection(Array(filter, group)) else group
+      AutoCompleteResult(partial, intersection.size)
     }
 
-    results.filter(_.sz > 0).take(10).toIterable
+    results.filter(_.numMatches > 0).take(request.numResults.getOrElse(10)).toIterable
   }
 
-  private[this] def resolveCompletions(partial: PartialQuery): Iterator[PartialQuery] = acquire(rwLock.readLock) {
-    partial.pq match {
-      case KEY_ONLY(_) => keyTrie.query(partial.pq).map(s => PartialQuery(s"$s:*"))
-      case SPLIT(_, _) => valTrie.query(partial.pq).map(s => PartialQuery(s"$s"))
+  private[this] def resolveCompletions(partial: String): Iterator[String] = acquire(rwLock.readLock) {
+    partial match {
+      case KEY_ONLY(_) => keyTrie.query(partial).map(s => s"$s:*")
+      case SPLIT(_, _) => valTrie.query(partial).map(s => s"$s")
       case WILDCARD(_) => Iterator(partial) // If manually specified, don't expand the wildcard.
       case _ => Iterator()
     }
