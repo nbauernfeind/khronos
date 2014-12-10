@@ -1,10 +1,10 @@
 'use strict';
 
 khronosApp.controller('MetricWidgetCtrl', ['$scope', 'WebSocket', function($scope, WebSocket) {
-    $scope.tags = [];
+    $scope.kvps = [];
 
     $scope.fetchSuggestions = function(viewValue) {
-        var tags = $scope.tags.map(function(t) { return t.tag; });
+        var tags = $scope.kvps.map(function(t) { return t.tag; });
         var params = {type: "metric-typeahead", tags: tags, tagQuery: viewValue};
         return WebSocket.sendRequest($scope, params).then(function (r) {
             var rlen = r.length;

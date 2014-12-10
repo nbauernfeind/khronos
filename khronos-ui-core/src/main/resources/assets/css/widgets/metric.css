@@ -49,3 +49,22 @@
     font-size: 10px;
     font-style: italic;
 }
+
+.tags-disp .tag-list {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+.tags-disp .tag-item {
+    background: #333333;
+    border: 1px solid #000000;
+    border-radius: 4px;
+    color: #ffffff;
+    margin: 2px;
+    padding: 0 5px;
+    display: inline-block;
+    float: left;
+    font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
+    height: 26px;
+    line-height: 25px;
+}

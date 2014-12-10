@@ -1,25 +1,35 @@
-<div ng-controller="MetricWidgetCtrl">
-    <form class="form-horizontal" role="form">
+<form class="form-horizontal" role="form">
+    <div ng-controller="MetricWidgetCtrl">
         <div class="form-group">
             <label class="col-sm-2 control-label">Tags: </label>
-            <div class="col-sm-10">
-                <tags-input class="metric"
-                            display-property="tag"
-                            ng-model="tags"
-                            placeholder="Add a tag"
-                            min-length="0"
-                            add-on-comma="true"
-                            add-on-space="true"
-                            enable-editing-last-tag="true">
-                    <auto-complete-khronos source="fetchSuggestions($query)"
-                                           format-suggestion="formatSuggestion($item, $query)"
-                                           min-length="0"
-                                           load-on-empty="true"
-                                           load-on-focus="true"
-                                           debounce-delay="0"
-                                           max-results="10"></auto-complete-khronos>
-                </tags-input>
+
+            <div class="col-sm-10" ng-switch="widget.editable">
+                <div ng-switch-when="true">
+                    <tags-input class="metric"
+                                display-property="tag"
+                                ng-model="kvps"
+                                placeholder="Add a tag"
+                                min-length="0"
+                                add-on-comma="true"
+                                add-on-space="true"
+                                enable-editing-last-tag="true">
+                        <auto-complete-khronos source="fetchSuggestions($query)"
+                                               format-suggestion="formatSuggestion($item, $query)"
+                                               min-length="0"
+                                               load-on-empty="true"
+                                               load-on-focus="true"
+                                               debounce-delay="0"
+                                               max-results="10"></auto-complete-khronos>
+                    </tags-input>
+                </div>
+                <div ng-switch-when="false" class="tags-disp">
+                    <ul class="tag-list">
+                        <li class="tag-item" ng-repeat="kvp in kvps">
+                            <span>{{kvp.tag}}</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </form>
-</div>
+    </div>
+</form>

@@ -7,34 +7,36 @@ import com.google.inject.Inject
 import com.nefariouszhen.khronos.db.Multiplexus
 import com.nefariouszhen.khronos.ui.Widget
 
+import scala.collection.mutable
+
 private class BlankWidget extends Widget[Unit] {
-  val data: Unit = {}
   val partial: String = "partials/widgets/blank.html"
-  val title: String = "Sample Title"
+  val name: String = "Blank"
 }
 
 private class StatusWidget extends Widget[Unit] {
-  val data: Unit = {}
   val partial: String = "partials/widgets/status.html"
-  val title: String = "Khronos Status"
+  val name: String = "Status"
 }
 
 private class MetricWidget extends Widget[Unit] {
-  val data: Unit = {}
   val partial: String = "partials/widgets/metric.html"
-  val title: String = "Metric"
+  val name: String = "Metric"
 }
 
-@Path("/1/ui/widgets/home")
+@Path("/1/ui/widgets")
 @Produces(Array(MediaType.APPLICATION_JSON))
 class HomeWidgetResource @Inject() (tsdb: Multiplexus) {
+  private[this] val widgets = mutable.ArrayBuffer[Widget[_]]()
+
+  def addWidget[T](w: Widget[T]): Unit = {
+    widgets += w
+  }
+
+  addWidget(new BlankWidget)
+  addWidget(new MetricWidget)
+
   @GET
-  def getWidgets: Seq[Widget[_]] = Seq(
-    new StatusWidget,
-    new MetricWidget,
-    new BlankWidget,
-    new BlankWidget,
-    new BlankWidget,
-    new BlankWidget
-  )
+  @Path("/all")
+  def getWidgets: Seq[Widget[_]] = widgets
 }

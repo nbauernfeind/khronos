@@ -57,10 +57,11 @@ body {
     background-color: #ED4337;
 }
 
-.panel-widget > .panel-heading > .panel-title {
+.panel-widget .panel-heading .panel-title {
+    padding-top: 7.5px;
+    font-size: 16px;
     font-weight: bold;
     font-family: museo-slab, Georgia, "Times New Roman", Times, serif;
-    font-size: 16px;
 }
 
 .panel-widget {
@@ -97,4 +98,14 @@ body {
     font-size: 32px;
     line-height: 64px;
     font-style: normal;
+}
+
+[ng-click],
+[data-ng-click],
+[x-ng-click] {
+    cursor: pointer;
+}
+
+.fill {
+    width: 100%;
 }
