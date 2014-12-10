@@ -23,8 +23,9 @@
                     </tags-input>
                 </div>
                 <div ng-switch-when="false" class="tags-disp">
+                    <div ng-if="kvps.length == 0" class="form-text"><span>None</span></div>
                     <ul class="tag-list">
-                        <li class="tag-item" ng-repeat="kvp in kvps">
+                        <li class="tag-item" ng-repeat="kvp in kvps | orderBy:tag">
                             <span>{{kvp.tag}}</span>
                         </li>
                     </ul>

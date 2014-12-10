@@ -51,21 +51,36 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', 'Widgets', function ($scope, 
     $scope.widgets = [];
 
     $scope.addWidget = function(widget) {
-        $scope.widgets.push(cloneWidget(widget));
+        $scope.widgets.push(newWidget(widget));
     };
 
     $scope.configure = function(widget) {
         widget.editable = !widget.editable;
     };
 
-    function cloneWidget(widget) {
-        // Todo: Clone data defaults in widget.
+    $scope.copyWidget = function(widget) {
+        // Todo: Deep copy config from widget.
+        $scope.widgets.push({
+            name: widget.name,
+            partial: widget.partial,
+            title: widget.title,
+            editable: false,
+            config: widget.config
+        });
+    };
+
+    $scope.removeWidget = function(idx) {
+        $scope.widgets.splice(idx, 1);
+    };
+
+    function newWidget(widget) {
+        // Todo: Clone config defaults in widget.
         return {
             name: widget.name,
             partial: widget.partial,
             title: "New " + widget.name,
             editable: true,
-            data: {}
+            config: widget.config || {}
         };
     }
 

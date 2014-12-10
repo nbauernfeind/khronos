@@ -1,7 +1,10 @@
 'use strict';
 
 khronosApp.controller('MetricWidgetCtrl', ['$scope', 'WebSocket', function($scope, WebSocket) {
-    $scope.kvps = [];
+    if ($scope.widget.config.kvps === undefined) {
+        $scope.widget.config.kvps = [];
+    }
+    $scope.kvps = $scope.widget.config.kvps;
 
     $scope.fetchSuggestions = function(viewValue) {
         var tags = $scope.kvps.map(function(t) { return t.tag; });

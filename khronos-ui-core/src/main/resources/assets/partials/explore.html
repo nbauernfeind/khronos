@@ -19,9 +19,19 @@
         <div class="panel panel-widget">
             <div class="panel-heading clearfix">
                 <div class="btn-group pull-right">
-                    <a class="btn btn-default btn-sm" ng-class="{active: widget.editable}" ng-click="configure(widget)">
+                    <button type="button" class="btn btn-default btn-sm" ng-class="{active: widget.editable}"
+                            ng-click="configure(widget)">
                         <i class="fa fa-gears"></i>
-                    </a>
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"
+                            aria-expanded="false">
+                        <span class="caret"></span>
+                        <span class="sr-only">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a ng-click="copyWidget(widget)">Clone <i class="fa fa-copy pull-right"></i></a></li>
+                        <li><a ng-click="removeWidget($index)">Delete <i class="fa fa-trash pull-right"></i></a></li>
+                    </ul>
                 </div>
                 <h4 class="panel-title">{{widget.title}}</h4>
             </div>
