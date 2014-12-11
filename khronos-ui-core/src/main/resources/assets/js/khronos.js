@@ -40,6 +40,10 @@ khronosApp.controller('KhronosCtrl', ['$scope', 'Widgets', function ($scope, Wid
     $scope.global = {};
 
     $scope.allWidgets = Widgets.all({});
+
+    $scope.deepCopy = function (dupe) {
+        return $.extend(true, {}, dupe);
+    }
 }]);
 
 khronosApp.controller('StatusTabCtrl', ['$scope', 'Widgets', function ($scope, Widgets) {
@@ -65,7 +69,7 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', 'Widgets', function ($scope, 
             partial: widget.partial,
             title: widget.title,
             editable: false,
-            config: widget.config
+            config: $scope.deepCopy(widget.config)
         });
     };
 
@@ -80,7 +84,7 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', 'Widgets', function ($scope, 
             partial: widget.partial,
             title: "New " + widget.name,
             editable: true,
-            config: widget.config || {}
+            config: $scope.deepCopy(widget.config || {})
         };
     }
 
