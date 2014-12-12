@@ -3,8 +3,10 @@ package com.nefariouszhen.khronos.websocket
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.{JsonProperty, JsonTypeInfo, JsonTypeName}
 import com.fasterxml.jackson.databind.{JsonMappingException, ObjectMapper}
+import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import io.dropwizard.jackson.Discoverable
@@ -20,7 +22,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include=As.PROPERTY, property = "type")
 trait WebSocketRequest extends Discoverable {
   val callbackId: Int = -1
   @JsonProperty(required = false)
@@ -41,10 +43,13 @@ object WebSocketState {
 class WebSocketState @Inject()(@Assisted r: AtmosphereResource, mapper: ObjectMapper) extends Closeable {
   private[this] val closed = new AtomicBoolean(false)
   private[this] val closeables = mutable.HashMap[Int, Closeable]()
+  private[this] val scalaMapper = new ObjectMapper with ScalaObjectMapper
 
-  def write[T](cid: Int, t: T): Unit = this.synchronized {
+  def write[T: Manifest](cid: Int, t: T): Unit = this.synchronized {
     if (!closed.get) {
-      r.write(mapper.writeValueAsString(WebSocketResponse(cid, t)))
+      val typ = scalaMapper.constructType[WebSocketResponse[T]]
+      val typMapper = mapper.writerWithType(typ)
+      r.write(typMapper.writeValueAsString(WebSocketResponse(cid, t)))
     }
   }
 
@@ -83,7 +88,7 @@ class WebSocketWriter(private[websocket] val socket: WebSocketState, cid: Int, r
   /**
    * Write `t` as json to the WebSocket while respecting the callback id.
    */
-  def write[T](t: T): Unit = {
+  def write[T: Manifest](t: T): Unit = {
     socket.write(cid, t)
   }
 }

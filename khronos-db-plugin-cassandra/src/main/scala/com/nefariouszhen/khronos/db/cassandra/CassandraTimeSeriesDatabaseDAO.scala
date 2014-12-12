@@ -1,7 +1,7 @@
 package com.nefariouszhen.khronos.db.cassandra
 
 import com.nefariouszhen.khronos.db.TimeSeriesDatabaseDAO
-import com.nefariouszhen.khronos.{KeyValuePair, Time, TimeSeriesPoint}
+import com.nefariouszhen.khronos.{Time, TimeSeriesPoint}
 
 class CassandraTimeSeriesDatabaseDAO extends TimeSeriesDatabaseDAO {
   override def isConnected: Boolean = ???

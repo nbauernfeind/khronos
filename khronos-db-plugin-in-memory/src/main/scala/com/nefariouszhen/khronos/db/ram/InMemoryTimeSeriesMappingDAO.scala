@@ -3,7 +3,7 @@ package com.nefariouszhen.khronos.db.ram
 import java.io.Closeable
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
-import com.nefariouszhen.khronos.KeyValuePair
+import com.nefariouszhen.khronos.ExactTag
 import com.nefariouszhen.khronos.db.{TimeSeriesMapping, TimeSeriesMappingDAO}
 
 import scala.collection.mutable
@@ -15,18 +15,18 @@ object InMemoryTimeSeriesMappingDAO {
   }
 }
 class InMemoryTimeSeriesMappingDAO extends TimeSeriesMappingDAO {
-  import InMemoryTimeSeriesMappingDAO._
+  import com.nefariouszhen.khronos.db.ram.InMemoryTimeSeriesMappingDAO._
 
   def isConnected: Boolean = true
 
   def timeSeries(): Iterable[TimeSeriesMapping] = idMap.values
 
-  def getIdOrCreate(keys: Seq[KeyValuePair]): Int = this.synchronized {
+  def getIdOrCreate(keys: Seq[ExactTag]): Int = this.synchronized {
     idMap.getOrElse(keys, fetchNextMapping(keys)).id
   }
 
-  def getKeys(id: Int): Seq[KeyValuePair] = this.synchronized {
-    keyMap.getOrElse(id, throw new NoSuchElementException("ID does not exist: " + id)).kvps
+  def getKeys(id: Int): Seq[ExactTag] = this.synchronized {
+    keyMap.getOrElse(id, throw new NoSuchElementException("ID does not exist: " + id)).tags
   }
 
   def subscribe(listener: (TimeSeriesMapping) => Unit): Closeable = this.synchronized {
@@ -47,7 +47,7 @@ class InMemoryTimeSeriesMappingDAO extends TimeSeriesMappingDAO {
     callback
   }
 
-  private[this] def fetchNextMapping(keys: Seq[KeyValuePair]): TimeSeriesMapping = this.synchronized {
+  private[this] def fetchNextMapping(keys: Seq[ExactTag]): TimeSeriesMapping = this.synchronized {
     listeners = listeners.filterNot(_.isClosed)
 
     val mapping = TimeSeriesMapping(nextId.getAndIncrement, keys)
@@ -60,6 +60,6 @@ class InMemoryTimeSeriesMappingDAO extends TimeSeriesMappingDAO {
 
   private[this] var listeners: List[ListenerCallback] = Nil
   private[this] val nextId = new AtomicInteger()
-  private[this] val idMap = mutable.HashMap[Seq[KeyValuePair], TimeSeriesMapping]()
+  private[this] val idMap = mutable.HashMap[Seq[ExactTag], TimeSeriesMapping]()
   private[this] val keyMap = mutable.HashMap[Int, TimeSeriesMapping]()
 }

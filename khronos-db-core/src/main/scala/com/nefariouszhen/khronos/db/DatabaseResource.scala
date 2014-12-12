@@ -4,7 +4,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.{GET, Path, Produces, QueryParam}
 
 import com.google.inject.Inject
-import com.nefariouszhen.khronos.KeyValuePair
+import com.nefariouszhen.khronos.ExactTag
 import com.nefariouszhen.khronos.db.index.{AutoCompleteRequest, AutoCompleteResult, Mustang}
 
 @Path("/1/db")
@@ -16,7 +16,7 @@ class DatabaseResource @Inject()(tsdb: Multiplexus, index: Mustang) {
 
   @GET
   @Path("/timeseries")
-  def timeseries(): Iterable[Seq[KeyValuePair]] = tsdb.timeseries
+  def timeseries(): Iterable[Seq[ExactTag]] = tsdb.timeseries
 
   @GET
   @Path("/autocomplete")

@@ -3,9 +3,9 @@ package com.nefariouszhen.khronos.metrics
 import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
 
 import com.codahale.metrics.{Timer => CodaTimer}
-import com.nefariouszhen.khronos.KeyValuePair._
+import com.nefariouszhen.khronos.ContentTag._
 import com.nefariouszhen.khronos.metrics.MetricsRegistry._
-import com.nefariouszhen.khronos.{KeyValuePair, Time}
+import com.nefariouszhen.khronos.{ExactTag, Time}
 
 import scala.collection.mutable
 
@@ -57,21 +57,21 @@ object MetricsRegistry {
 }
 
 class MetricsRegistry {
-  private[this] val registry = mutable.HashMap[Seq[KeyValuePair], Metric]()
+  private[this] val registry = mutable.HashMap[Seq[ExactTag], Metric]()
 
-  def newCounter(rawKeys: Seq[KeyValuePair]): Counter = this.synchronized {
+  def newCounter(rawKeys: Seq[ExactTag]): Counter = this.synchronized {
     val counter = new Counter
     registry.getOrElseUpdate(validateKey("count", rawKeys), counter)
     counter
   }
 
-  def newMeter(rawKeys: Seq[KeyValuePair], compute: => Double): Meter = this.synchronized {
+  def newMeter(rawKeys: Seq[ExactTag], compute: => Double): Meter = this.synchronized {
     val meter = new Meter(() => compute)
     registry.getOrElseUpdate(validateKey("meter", rawKeys), meter)
     meter
   }
 
-  def newTimer(rawKeys: Seq[KeyValuePair]): Timer = this.synchronized {
+  def newTimer(rawKeys: Seq[ExactTag]): Timer = this.synchronized {
     val timer = new Timer
     registry.getOrElseUpdate(validateKey(rawKeys), timer)
     timer
@@ -84,7 +84,7 @@ class MetricsRegistry {
     "units" -> "ms"
   ))
 
-  def writeMetrics(write: (Seq[KeyValuePair], Time, Double) => Unit): Unit = this.synchronized {
+  def writeMetrics(write: (Seq[ExactTag], Time, Double) => Unit): Unit = this.synchronized {
     val startTm = System.currentTimeMillis()
     val tm = Time(startTm / 1e3.toLong)
     for ((keys, metric) <- registry) metric match {
@@ -123,16 +123,16 @@ class MetricsRegistry {
     writeTm.increment(System.currentTimeMillis() - startTm)
   }
 
-  private[this] def validateKey(valtype: String, keys: Seq[KeyValuePair]): Seq[KeyValuePair] = {
-    val rawKeys = mutable.ArrayBuffer[KeyValuePair]()
-    rawKeys.sizeHint(keys.length + 1)
-    rawKeys ++= keys
+  private[this] def validateKey(valtype: String, tags: Seq[ExactTag]): Seq[ExactTag] = {
+    val rawKeys = mutable.ArrayBuffer[ExactTag]()
+    rawKeys.sizeHint(tags.length + 1)
+    rawKeys ++= tags
     rawKeys += "valtype" -> valtype
     validateKey(rawKeys)
   }
 
-  private[this] def validateKey(rawKeys: Seq[KeyValuePair]): Seq[KeyValuePair] = {
-    val keys = rawKeys.sorted
+  private[this] def validateKey(rawTags: Seq[ExactTag]): Seq[ExactTag] = {
+    val keys = rawTags.sorted
     if (registry.get(keys).isDefined) {
       throw new IllegalArgumentException("Metric pre-existing for key: " + keys.mkString(","))
     }

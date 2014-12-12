@@ -1,8 +1,7 @@
 package com.nefariouszhen.khronos.db.cassandra
 
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.nefariouszhen.khronos.db.{TimeSeriesDatabaseDAO, DatabaseConfiguration, DatabaseModule}
-import com.nefariouszhen.khronos.util.DropwizardModule
+import com.nefariouszhen.khronos.db.{DatabaseConfiguration, DatabaseModule, TimeSeriesDatabaseDAO}
 
 @JsonTypeName("cassandra")
 class CassandraTSDBConfiguration extends DatabaseConfiguration {

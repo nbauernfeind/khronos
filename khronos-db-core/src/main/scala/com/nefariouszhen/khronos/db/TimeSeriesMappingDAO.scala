@@ -2,9 +2,9 @@ package com.nefariouszhen.khronos.db
 
 import java.io.Closeable
 
-import com.nefariouszhen.khronos.KeyValuePair
+import com.nefariouszhen.khronos.ExactTag
 
-case class TimeSeriesMapping(id: Int, kvps: Seq[KeyValuePair]) extends Ordered[TimeSeriesMapping] {
+case class TimeSeriesMapping(id: Int, tags: Seq[ExactTag]) extends Ordered[TimeSeriesMapping] {
   override def compare(that: TimeSeriesMapping): Int = id.compare(that.id)
 }
 
@@ -13,17 +13,17 @@ trait TimeSeriesMappingDAO {
 
   /**
    * For a given set of key-value pairs fetch the timeseries id.
-   * @param keys the kvps that represent the timeseries in question.
+   * @param tags the exact tags that represent the timeseries in question.
    * @return the time series id
    */
-  def getIdOrCreate(keys: Seq[KeyValuePair]): Int
+  def getIdOrCreate(tags: Seq[ExactTag]): Int
 
   /**
    * For a given id fetch the key-value pairs that represent the time series in question.
    * @param id the time series id
    * @return the key-value pairs that represent the time series in question.
    */
-  def getKeys(id: Int): Seq[KeyValuePair]
+  def getKeys(id: Int): Seq[ExactTag]
 
   /**
    * Fetch all known time series.

@@ -98,22 +98,15 @@ khronosApp.factory('WebSocket', ['$q', '$rootScope', function($q, $rootScope) {
     function doSendRequest(callback) {
         var request = callback.request;
         socket.push(JSON.stringify(request));
-
-        if (request.recurring === true) {
-            callback.scope.$on("$destroy", function () {
-                delete callbacks[request.callbackId];
-                var cancel = {
-                    type: 'cancel',
-                    callbackId: request.callbackId
-                };
-                socket.push(JSON.stringify(cancel));
-            });
-        }
     }
 
     Service.sendRecurringRequest = function($scope, request, callback) {
-        request.callbackId = getCallbackId();
         request.recurring = true;
+        return Service.sendRequest($scope, request, callback);
+    };
+
+    Service.sendRequest = function($scope, request, callback) {
+        request.callbackId = getCallbackId();
 
         callbacks[request.callbackId] = {
             scope: $scope,
@@ -125,23 +118,23 @@ khronosApp.factory('WebSocket', ['$q', '$rootScope', function($q, $rootScope) {
         if (Service.isConnected) {
             doSendRequest(callbacks[request.callbackId]);
         }
-    };
 
-    Service.sendRequest = function($scope, request) {
-        var defer = $q.defer();
-        request.callbackId = getCallbackId();
-        callbacks[request.callbackId] = {
-            scope: $scope,
-            time: new Date(),
-            request: request,
-            cb: defer.resolve
+        request.cancel = function() {
+            request.cancelled = true;
+            delete callbacks[request.callbackId];
+
+            if (request.recurring === true) {
+                var cancel = {
+                    type: 'cancel',
+                    callbackId: request.callbackId
+                };
+                socket.push(JSON.stringify(cancel));
+            }
         };
 
-        if (Service.isConnected) {
-            doSendRequest(callbacks[request.callbackId]);
-        }
+        callbacks[request.callbackId].scope.$on("$destroy", request.cancel);
 
-        return defer.promise;
+        return request.cancel;
     };
 
     // Start Service!

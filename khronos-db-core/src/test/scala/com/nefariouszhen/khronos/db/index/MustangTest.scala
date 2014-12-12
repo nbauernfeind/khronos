@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import com.google.inject
 import com.google.inject.{Guice, Provides}
-import com.nefariouszhen.khronos.KeyValuePair
+import com.nefariouszhen.khronos.ExactTag
 import com.nefariouszhen.khronos.db.{TimeSeriesMapping, TimeSeriesMappingDAO}
 import com.nefariouszhen.khronos.metrics.MetricsRegistry
 import com.nefariouszhen.khronos.metrics.MetricsRegistry.Timer
@@ -33,6 +33,7 @@ class MustangTest extends TestMatchers {
   }
 
   class DataSet {
+
     import net.codingwell.scalaguice.InjectorExtensions._
 
     val injector = Guice.createInjector(new ScalaModule {
@@ -75,8 +76,8 @@ class MustangTest extends TestMatchers {
 
     val nextId = new AtomicInteger()
 
-    def registerMapping(kvps: KeyValuePair*): Unit = {
-      registerMapping(TimeSeriesMapping(nextId.incrementAndGet, kvps))
+    def registerMapping(tags: ExactTag*): Unit = {
+      registerMapping(TimeSeriesMapping(nextId.incrementAndGet, tags))
     }
 
     def emptyQuery(numResults: Int = 10): Iterable[AutoCompleteResult] = {
@@ -93,7 +94,7 @@ class MustangTest extends TestMatchers {
   def shouldReturnKeysSorted(): Unit = new DataSet {
     val keys = List("type", "valtype", "app", "system", "units")
     for (key <- keys) {
-      registerMapping(KeyValuePair(key, "a"))
+      registerMapping(ExactTag(key, "a"))
       emptyQuery().map(_.tag) should beSorted[String]
     }
 
@@ -104,7 +105,7 @@ class MustangTest extends TestMatchers {
   def shouldFilterKey(): Unit = new DataSet {
     val keys = List("type", "valtype", "app", "system", "units")
     for (key <- keys) {
-      registerMapping(KeyValuePair(key, "a"))
+      registerMapping(ExactTag(key, "a"))
     }
 
     for (key <- keys) {
@@ -119,7 +120,7 @@ class MustangTest extends TestMatchers {
   def shouldExpandKeyWithColon(): Unit = new DataSet {
     val keys = List("type", "valtype", "app", "system", "units")
     for (key <- keys) {
-      registerMapping(KeyValuePair(key, "a"))
+      registerMapping(ExactTag(key, "a"))
     }
 
     for (key <- keys) {

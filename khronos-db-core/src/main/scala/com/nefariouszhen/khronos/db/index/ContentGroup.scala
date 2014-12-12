@@ -85,4 +85,22 @@ object ContentGroup {
 
     result.build()
   }
+
+  def countIntersection[T: ClassTag](gs: Iterable[ContentGroup[T]])(implicit ord: Ordering[T]): Int = {
+    var result = 0
+
+    val iterators = gs.map(_.iterator).map(new PeekIterator(_))
+
+    while (iterators != Nil && iterators.find(_.isEmpty).isEmpty) {
+      val id = iterators.view.map(_.peek).min
+
+      if (iterators.find(_.peek != id).isEmpty) {
+        result += 1
+      }
+
+      iterators.foreach(_.nextIf(id))
+    }
+
+    result
+  }
 }

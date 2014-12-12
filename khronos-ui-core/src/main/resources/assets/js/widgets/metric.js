@@ -1,6 +1,6 @@
 'use strict';
 
-khronosApp.controller('MetricWidgetCtrl', ['$scope', 'WebSocket', function($scope, WebSocket) {
+khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function($q, $scope, WebSocket) {
     if ($scope.widget.config.kvps === undefined) {
         $scope.widget.config.kvps = [];
     }
@@ -9,13 +9,15 @@ khronosApp.controller('MetricWidgetCtrl', ['$scope', 'WebSocket', function($scop
     $scope.fetchSuggestions = function(viewValue) {
         var tags = $scope.kvps.map(function(t) { return t.tag; });
         var params = {type: "metric-typeahead", tags: tags, tagQuery: viewValue};
-        return WebSocket.sendRequest($scope, params).then(function (r) {
+        var defer = $q.defer();
+        WebSocket.sendRequest($scope, params, function (r) {
             var rlen = r.length;
             for (var i = 0; i < rlen; ++i) {
                 r[i].suggestion = $scope.formatSuggestion(r[i], viewValue);
             }
-            return r;
+            return defer.resolve(r);
         });
+        return defer.promise;
     };
 
     $scope.formatSuggestion = function(suggestion, query) {
@@ -29,6 +31,19 @@ khronosApp.controller('MetricWidgetCtrl', ['$scope', 'WebSocket', function($scop
             "(" + suggestion.numMatches + " " + matches + " )" +
             "</span></span>";
     };
+
+    var cancelSubscription = function() {};
+
+    $scope.$watchCollection('kvps', function() {
+        if ($scope.kvps.length > 0) {
+            var tags = $scope.kvps.map(function(t) { return t.tag; });
+            var params = {type: "metric-subscribe", tags: tags, agg: "AVG"};
+            cancelSubscription();
+            cancelSubscription = WebSocket.sendRecurringRequest($scope, params, function(r) {
+                console.log(r);
+            });
+        }
+    });
 
     function replaceAll(str, substr, newSubstr) {
         if (!substr) {

@@ -5,9 +5,11 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong, AtomicReference}
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
 import com.google.inject.Inject
+import com.nefariouszhen.khronos.db.index.Mustang
 import com.nefariouszhen.khronos.metrics.MetricsRegistry
 import com.nefariouszhen.khronos.util.SafeRunnable
-import com.nefariouszhen.khronos.{KeyValuePair, Time, TimeSeriesPoint}
+import com.nefariouszhen.khronos.websocket.{WebSocketManager, WebSocketWriter}
+import com.nefariouszhen.khronos.{ContentTag, ExactTag, Time, TimeSeriesPoint}
 import io.dropwizard.lifecycle.Managed
 import org.slf4j.LoggerFactory
 
@@ -16,17 +18,13 @@ import scala.collection.mutable
 object Multiplexus {
   val WRITE_DELAY_SECONDS = 30
 
-  trait Query
-
-  case class RawQuery(rawKeys: Seq[KeyValuePair])
-
   trait ListenerCallback extends Closeable {
     def isClosed: Boolean
 
-    def callback: TimeSeriesPoint => Unit
+    def callback(id: Mustang.TSID, tsp: TimeSeriesPoint): Unit
   }
 
-  class ListenerSet {
+  class ListenerSet(id: Mustang.TSID) {
     private[this] var listeners: List[ListenerCallback] = Nil
 
     def isEmpty: Boolean = listeners.isEmpty
@@ -40,7 +38,7 @@ object Multiplexus {
       var cnt = 0
       for (listener <- listeners) {
         cnt += 1
-        listener.callback(tsp)
+        listener.callback(id, tsp)
       }
       cnt
     }
@@ -52,10 +50,10 @@ object Multiplexus {
 }
 
 class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabaseDAO, registry: MetricsRegistry,
-                            executor: ScheduledExecutorService) extends Managed {
+                            mustang: Mustang, executor: ScheduledExecutorService) extends Managed {
 
-  import com.nefariouszhen.khronos.KeyValuePair._
   import com.nefariouszhen.khronos.db.Multiplexus._
+  import com.nefariouszhen.khronos.db.websocket._
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
   private[this] val taskFuture = new AtomicReference[Option[ScheduledFuture[_]]](None)
@@ -65,6 +63,9 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
 
   /** Multiplexus Metrics **/
   private[this] val metrics = new {
+
+    import com.nefariouszhen.khronos.ContentTag._
+
     private[this] def newKey(typ: String) = List("type" -> typ, "app" -> "khronos", "system" -> "multiplexus")
 
     val numInPoints = registry.newCounter(newKey("numInPoints"))
@@ -73,6 +74,15 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
 
     registry.newMeter(newKey("numQueriesActive"), entryPoints.size)
     registry.newMeter(newKey("numStreamsActive"), streamCount.get)
+  }
+
+  @Inject
+  private[this] def registerWebHooks(ws: WebSocketManager): Unit = {
+    ws.registerCallback(onSubscribeRequest)
+  }
+
+  private[this] def onSubscribeRequest(writer: WebSocketWriter, request: MetricSubscribe): Unit = {
+    writer.manage(subscribe(request, (r: MetricResponse) => writer.write(r)))
   }
 
   def start(): Unit = {
@@ -89,7 +99,7 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
     taskFuture.getAndSet(None).foreach(_.cancel(false))
   }
 
-  def write(rawKeys: Seq[KeyValuePair], tm: Time, value: Double): Unit = metrics.writeTm.time {
+  def write(rawKeys: Seq[ExactTag], tm: Time, value: Double): Unit = metrics.writeTm.time {
     val id = idMap.getIdOrCreate(rawKeys.sorted)
     dao.write(id, tm, value)
     metrics.numInPoints.increment()
@@ -101,32 +111,45 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
     }
   }
 
-  def subscribe(query: RawQuery, listener: TimeSeriesPoint => Unit): Closeable = {
-    val ret = new ListenerCallback {
-      streamCount.incrementAndGet()
-      private[this] val closed = new AtomicBoolean(false)
-
-      val callback = listener
-
-      def isClosed = closed.get()
-
-      def close(): Unit = {
-        closed.set(true)
-        streamCount.decrementAndGet()
-      }
+  def subscribe(query: MetricSubscribe, callback: MetricResponse => Unit): Closeable = {
+    val tags = query.tags.map(ContentTag.apply)
+    val active = mustang.query(tags)
+    if (active.isEmpty) {
+      callback(MetricWarning("No active timeseries for this query."))
     }
 
-    // TODO: This is not what I really want, eventually a query should span multiple time series.
-    // (and we shouldn't create an id for an unknown kvp seq)
-    val id = idMap.getIdOrCreate(query.rawKeys.sorted)
-    this.synchronized {
-      entryPoints.getOrElseUpdate(id, new ListenerSet()).add(ret)
+    // TODO: Multiple aggregations for an individual query.
+    val gid = 1
+    val ret = new AggregateListener(gid, Aggregator(query.agg), callback)
+
+    for (id <- active.iterator) {
+      entryPoints.getOrElseUpdate(id, new ListenerSet(id)).add(ret)
     }
+
+    // TODO: compute historical data, send to listener.
+    callback(MetricHeader(gid, tags.map(tag => tag.k -> tag.v).toMap))
 
     ret
   }
 
-  def timeseries: Iterable[Seq[KeyValuePair]] = idMap.timeSeries().map(_.kvps)
+  def timeseries: Iterable[Seq[ExactTag]] = idMap.timeSeries().map(_.tags)
+
+  class AggregateListener(gid: Int, agg: Aggregator, pCallback: MetricResponse => Unit) extends ListenerCallback {
+    streamCount.incrementAndGet()
+    private[this] val closed = new AtomicBoolean(false)
+
+    def isClosed: Boolean = closed.get()
+
+    def close(): Unit = {
+      closed.set(true)
+      streamCount.decrementAndGet()
+    }
+
+    def callback(id: Mustang.TSID, tsp: TimeSeriesPoint): Unit = this.synchronized {
+      agg.update(id, tsp)
+      pCallback(MetricValue(gid, Seq(agg.evaluate(tsp.tm))))
+    }
+  }
 
   def status: Status = new Status
 
