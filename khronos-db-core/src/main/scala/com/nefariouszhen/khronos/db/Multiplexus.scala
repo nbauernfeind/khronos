@@ -7,7 +7,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit
 import com.google.inject.Inject
 import com.nefariouszhen.khronos.db.index.Mustang
 import com.nefariouszhen.khronos.metrics.MetricsRegistry
-import com.nefariouszhen.khronos.util.SafeRunnable
+import com.nefariouszhen.khronos.util.{PeekIterator, SafeRunnable}
 import com.nefariouszhen.khronos.websocket.{WebSocketManager, WebSocketWriter}
 import com.nefariouszhen.khronos.{ContentTag, ExactTag, Time, TimeSeriesPoint}
 import io.dropwizard.lifecycle.Managed
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.mutable
 
 object Multiplexus {
-  val WRITE_DELAY_SECONDS = 30
+  val WRITE_DELAY_SECONDS = 1
 
   trait ListenerCallback extends Closeable {
     def isClosed: Boolean
@@ -125,9 +125,24 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
     for (id <- active.iterator) {
       entryPoints.getOrElseUpdate(id, new ListenerSet(id)).add(ret)
     }
-
-    // TODO: compute historical data, send to listener.
     callback(MetricHeader(gid, tags.map(tag => tag.k -> tag.v).toMap))
+
+    // Compute historical data.
+    case class TS(id: Int, it: PeekIterator[TimeSeriesPoint])
+    var ats = (for (id <- active.iterator) yield {
+      TS(id, new PeekIterator(dao.read(id, Time(0))))
+    }).filter(_.it.hasNext).toSeq
+
+    // TODO: Batch historical data into one message.
+    while (ats.nonEmpty) {
+      var currTm = ats.view.map(_.it.peek.tm).min
+      for (ts <- ats) {
+        if (ts.it.peek.tm == currTm) {
+          ret.callback(ts.id, ts.it.next())
+        }
+      }
+      ats = ats.filter(_.it.hasNext)
+    }
 
     ret
   }

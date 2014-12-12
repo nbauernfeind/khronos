@@ -1,13 +1,13 @@
-<form class="form-horizontal" role="form">
+<form class="form" role="form">
     <div ng-controller="MetricWidgetCtrl">
         <div class="form-group">
-            <label class="col-sm-2 control-label">Tags: </label>
+            <label ng-if="widget.editable" class="control-label">Tags: </label>
 
-            <div class="col-sm-10" ng-switch="widget.editable">
+            <div ng-switch="widget.editable">
                 <div ng-switch-when="true">
                     <tags-input class="metric"
                                 display-property="tag"
-                                ng-model="kvps"
+                                ng-model="tags"
                                 placeholder="Add a tag"
                                 min-length="0"
                                 add-on-comma="true"
@@ -21,14 +21,41 @@
                                                debounce-delay="0"
                                                max-results="10"></auto-complete-khronos>
                     </tags-input>
+
                 </div>
                 <div ng-switch-when="false" class="tags-disp">
-                    <div ng-if="kvps.length == 0" class="form-text"><span>None</span></div>
+                    <div ng-if="tags.length == 0" class="form-text"><span>None</span></div>
                     <ul class="tag-list">
-                        <li class="tag-item" ng-repeat="kvp in kvps | orderBy:tag">
-                            <span>{{kvp.tag}}</span>
+                        <li class="tag-item" ng-repeat="tag in tags | orderBy:tag">
+                            <span>{{tag.tag}}</span>
                         </li>
                     </ul>
+                </div>
+            </div>
+
+            <div ng-if="widget.editable">
+                <label class="control-label">Renderer: </label>
+
+                <select class="form-control" ng-model="widget.config.options.renderer"
+                        ng-options="r for r in renderers"></select>
+            </div>
+
+            <rickshaw
+                    options="widget.config.options"
+                    features="widget.config.features"
+                    series="widget.data">
+            </rickshaw>
+
+            <div ng-if="widget.notifications.length">
+                <hr/>
+                <div class="alert alert-dismissible" role="alert"
+                     ng-class="{ 'alert-danger': notification.type == 'error', 'alert-warning': notification.type == 'warn' }"
+                     ng-repeat="notification in widget.notifications | limitTo: 5">
+                    <button type="button" class="close" ng-click="clearNotification($index)">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                    </button>
+                    <b>{{notification.type}}: </b>{{notification.what}}
                 </div>
             </div>
         </div>
