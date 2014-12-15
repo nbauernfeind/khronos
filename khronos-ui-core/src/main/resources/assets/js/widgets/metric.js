@@ -15,9 +15,6 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     $scope.widget.gidToIdx = {};
     $scope.widget.options = $scope.widget.config.options;
 
-    console.log($scope.widget.options);
-    console.log($scope.widget.config.features);
-
     $scope.widget.notifications = [];
     $scope.clearNotification = function (idx) {
         $scope.widget.notifications.splice(idx, 1);
