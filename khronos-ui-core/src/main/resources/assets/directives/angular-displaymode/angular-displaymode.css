@@ -1,0 +1,44 @@
+.display-mode {
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
+.display-mode span {
+    display: inline-block;
+    height: 1px;
+    width: 1px;
+}
+
+@media only screen and (max-width: 767px) {
+    .display-mode .tablet,
+    .display-mode .tablet-landscape,
+    .display-mode .desktop {
+        display: none;
+    }
+}
+
+@media only screen and (min-width: 768px) and (max-width: 991px) {
+    .display-mode .mobile,
+    .display-mode .tablet-landscape,
+    .display-mode .desktop {
+        display: none;
+    }
+}
+
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
+    .display-mode .mobile,
+    .display-mode .tablet,
+    .display-mode .desktop {
+        display: none;
+    }
+}
+
+@media (min-width: 1200px) {
+    .display-mode .mobile,
+    .display-mode .tablet,
+    .display-mode .tablet-landscape {
+        display: none;
+    }
+}

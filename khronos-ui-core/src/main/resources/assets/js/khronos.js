@@ -1,7 +1,7 @@
 'use strict';
 
 var khronosApp = angular.module('khronos', ['ngRoute', 'ngResource', 'ngSanitize', 'mgcrea.ngStrap', 'ngTagsInput',
-    'angular-dygraphs']);
+    'angular-dygraphs', 'angular-displaymode']);
 
 khronosApp.config(['$routeProvider',
     function ($routeProvider) {
@@ -55,15 +55,15 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', 'Widgets', function ($scope, 
     $scope.global.currTab = "Explore";
     $scope.widgets = [];
 
-    $scope.addWidget = function(widget) {
+    $scope.addWidget = function (widget) {
         $scope.widgets.push(newWidget(widget));
     };
 
-    $scope.configure = function(widget) {
+    $scope.configure = function (widget) {
         widget.editable = !widget.editable;
     };
 
-    $scope.copyWidget = function(widget) {
+    $scope.copyWidget = function (widget) {
         // Todo: Deep copy config from widget.
         $scope.widgets.push({
             name: widget.name,
@@ -74,8 +74,17 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', 'Widgets', function ($scope, 
         });
     };
 
-    $scope.removeWidget = function(idx) {
+    $scope.removeWidget = function (idx) {
         $scope.widgets.splice(idx, 1);
+    };
+
+    $scope.idxCompletesRow = function (idx) {
+        switch($scope.global.displayMode) {
+            case 'desktop':
+                return (idx + 1)%3 == 0;
+            default:
+                return (idx + 1)%2 == 0;
+        }
     };
 
     function newWidget(widget) {

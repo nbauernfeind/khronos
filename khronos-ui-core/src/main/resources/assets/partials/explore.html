@@ -1,3 +1,4 @@
+<div class="display-mode" ng-display-mode="global.displayMode"></div>
 <nav class="navbar panel-widget fill">
     <div class="container"><div class="pull-right">
         <div class="btn-group">
@@ -15,7 +16,8 @@
 </nav>
 
 <div class="container-fluid">
-    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4" ng-repeat="widget in widgets">
+    <div class="row"></div>
+    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4" ng-repeat-start="widget in widgets">
         <div class="panel panel-widget">
             <div class="panel-heading clearfix">
                 <div class="btn-group pull-right">
@@ -46,4 +48,6 @@
             </div>
         </div>
     </div>
+    <div class="clearfix" ng-if="idxCompletesRow($index)"></div>
+    <div ng-repeat-end=""></div>
 </div>
