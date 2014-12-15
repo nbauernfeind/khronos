@@ -58,7 +58,11 @@
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only">Close</span>
                 </button>
-                <b>{{notification.type}}: </b>{{notification.what}}
+                <b ng-switch="notification.type">
+                    <b ng-switch-when="error">Error: </b>
+                    <b ng-switch-when="warn">Warning: </b>
+                </b>
+                {{notification.what}}
             </div>
         </div>
     </div>
