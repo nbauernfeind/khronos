@@ -7,7 +7,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
         }
     }
     initConfig('tags', []);
-    initConfig('options', {renderer: "line"});
+    initConfig('options', {renderer: "line", width: "100"});
     initConfig('features', {
         palette: 'spectrum14',
         hover: {
@@ -17,34 +17,16 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
             yFormatter: function (y) {
                 return '$' + y;
             }
-        }, xAxis: true
+        },
+        xAxis: true
     });
 
+    $scope.widget.lastTm = 0;
     $scope.widget.data = [];
     $scope.widget.gidToIdx = {};
 
     console.log($scope.widget.config.options);
     console.log($scope.widget.config.features);
-
-    //var seriesData = [ [], [], [], [], [], [], [], [], [] ];
-    //var random = new Rickshaw.Fixtures.RandomData(150);
-    //for (var i = 0; i < 150; i++) {
-    //    random.addData(seriesData);
-    //}
-    //var palette = new Rickshaw.Color.Palette( { scheme: 'classic9' } );
-
-    //var graph = resetGraph();
-    //function resetGraph() {
-    //    return new Rickshaw.Graph({
-    //        element: document.getElementById("chart"),
-    //        width: 900,
-    //        height: 500,
-    //        renderer: 'area',
-    //        stroke: true,
-    //        preserve: true,
-    //        series: $scope.widget.data
-    //    });
-    //}
 
     $scope.widget.notifications = [];
     $scope.clearNotification = function(idx) {
@@ -143,6 +125,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
         for (var i = 0; i < numPoints; ++i) {
             ts.data.push({x: r.points[i].tm, y: r.points[i].value});
         }
+        $scope.widget.lastTm += 1;
     }
 
     function replaceAll(str, substr, newSubstr) {

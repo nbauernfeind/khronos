@@ -40,12 +40,15 @@
                         ng-options="r for r in renderers"></select>
             </div>
 
-            <rickshaw
+            <rickshaw class="fill"
                     options="widget.config.options"
                     features="widget.config.features"
-                    series="widget.data">
+                    series="widget.data"
+                    last-tm="widget.lastTm">
             </rickshaw>
 
+            <hr/>
+            <div>{{widget.lastTm}}</div>
             <div ng-if="widget.notifications.length">
                 <hr/>
                 <div class="alert alert-dismissible" role="alert"

@@ -92,6 +92,8 @@ khronosApp.factory('WebSocket', ['$q', '$rootScope', function($q, $rootScope) {
             if (recurring === undefined || recurring === false) {
                 delete callbacks[obj.callbackId];
             }
+        } else {
+            console.log("Warning: unknown callback with id: " + obj.callbackId);
         }
     };
 
@@ -120,6 +122,11 @@ khronosApp.factory('WebSocket', ['$q', '$rootScope', function($q, $rootScope) {
         }
 
         request.cancel = function() {
+            if (request.cancelled || !callbacks.hasOwnProperty(request.callbackId)) {
+                return;
+            }
+
+            console.log("Cancelling request for id: " + request.callbackId);
             request.cancelled = true;
             delete callbacks[request.callbackId];
 

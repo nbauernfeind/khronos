@@ -7,7 +7,8 @@ angular.module('angular-rickshaw', [])
             scope: {
                 options: '=',
                 series: '=',
-                features: '='
+                features: '=',
+                lastTm: '='
             },
             link: function (scope, element, attrs) {
                 var graph;
@@ -17,17 +18,16 @@ angular.module('angular-rickshaw', [])
                     return main[0];
                 }();
 
-                var palette = new Rickshaw.Color.Palette({scheme: "spectrum14"});
-                if (scope.features && scope.features.palette) {
-                    palette = new Rickshaw.Color.Palette({scheme: scope.features.palette});
-                }
-
                 function update() {
+                    var palette = new Rickshaw.Color.Palette({scheme: "spectrum14"});
+                    if (scope.features && scope.features.palette) {
+                        palette = new Rickshaw.Color.Palette({scheme: scope.features.palette});
+                    }
+
                     angular.element(graphEl).empty();
                     var settings = $.extend({}, scope.options);
                     settings.element = graphEl;
                     settings.series = scope.series;
-                    console.log("Graphing series: " + scope.series.length);
                     graph = new Rickshaw.Graph(settings);
 
                     if (scope.features && scope.features.hover) {
@@ -41,16 +41,16 @@ angular.module('angular-rickshaw', [])
                     }
 
                     for (var i = 0; i < settings.series.length; i++) {
-                        if (settings.series[i].color === undefined) {
-                            settings.series[i].color = palette.color();
-                        }
+                        settings.series[i].color = palette.color();
                     }
 
                     graph.render();
 
                     if (scope.features && scope.features.xAxis) {
                         var xAxisConfig = {
-                            graph: graph
+                            graph: graph,
+                            timeFixture: new Rickshaw.Fixtures.Time.Local(),
+                            ticksTreatment: 'glow'
                         };
                         if (scope.features.xAxis.timeUnit) {
                             var time = new Rickshaw.Fixtures.Time();
@@ -96,43 +96,22 @@ angular.module('angular-rickshaw', [])
                     }
                 }
 
-                var optionsWatch = scope.$watch('options', function (newValue, oldValue) {
-                    if (!angular.equals(newValue, oldValue)) {
-                        update();
-                    }
+                var optionsWatch = scope.$watch('options', update, true);
+
+                var newDataWatch = scope.$watch('lastTm', function() {
+                    graph.update();
                 });
 
-                function constructDataWatch() {
-                    var watches = {};
-                    for (var i = 0; i < scope.series.length; i++) {
-                        watches[i] = scope.series[i].data;
-                    }
-                    return watches;
-                }
-
-                function watchSeries() {
-                    return scope.$watch(constructDataWatch(), function() { graph.update(); }, true);
-                }
-
-                var seriesWatch = watchSeries();
-                var seriesContainerWatch = scope.$watch('series', function (newValue, oldValue) {
-                    console.log("Series changed.");
-                    console.log(scope.series);
-                    seriesWatch();
-                    seriesWatch = watchSeries();
+                var seriesWatch = scope.$watchCollection('series', function () {
                     update();
                 });
 
-                var featuresWatch = scope.$watch('features', function (newValue, oldValue) {
-                    if (!angular.equals(newValue, oldValue)) {
-                        update();
-                    }
-                });
+                var featuresWatch = scope.$watch('features', update, true);
 
                 scope.$on('$destroy', function () {
                     optionsWatch();
-                    seriesContainerWatch();
                     seriesWatch();
+                    newDataWatch();
                     featuresWatch();
                 });
 
