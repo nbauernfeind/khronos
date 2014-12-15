@@ -9,9 +9,16 @@ import scala.collection.JavaConversions._
 
 sealed trait Aggregator {
   protected[this] val ts = new util.TreeMap[Mustang.TSID, Double]()
+  protected[this] var lastTm = Time(0)
 
-  def update(id: Mustang.TSID, tsp: TimeSeriesPoint): Unit = {
+  def update(id: Mustang.TSID, tsp: TimeSeriesPoint): Option[TimeSeriesPoint] = {
+    var ret: Option[TimeSeriesPoint] = None
+    if (lastTm != Time(0) && lastTm != tsp.tm) {
+      ret = Some(evaluate(lastTm))
+    }
+    lastTm = tsp.tm
     ts.put(id, tsp.value)
+    ret
   }
 
   def evaluate(tm: Time): TimeSeriesPoint

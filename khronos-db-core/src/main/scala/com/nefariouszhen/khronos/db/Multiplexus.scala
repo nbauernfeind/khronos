@@ -6,6 +6,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit
 
 import com.google.inject.Inject
 import com.nefariouszhen.khronos.db.index.Mustang
+import com.nefariouszhen.khronos.db.index.Mustang.TSID
 import com.nefariouszhen.khronos.metrics.MetricsRegistry
 import com.nefariouszhen.khronos.util.{PeekIterator, SafeRunnable}
 import com.nefariouszhen.khronos.websocket.{WebSocketManager, WebSocketWriter}
@@ -133,16 +134,18 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
       TS(id, new PeekIterator(dao.read(id, Time(0))))
     }).filter(_.it.hasNext).toSeq
 
-    // TODO: Batch historical data into one message.
+    val historicalPoints = mutable.ArrayBuffer[TimeSeriesPoint]()
+
     while (ats.nonEmpty) {
       var currTm = ats.view.map(_.it.peek.tm).min
       for (ts <- ats) {
         if (ts.it.peek.tm == currTm) {
-          ret.callback(ts.id, ts.it.next())
+          ret.aggHistorical(ts.id, ts.it.next()).map(historicalPoints += _)
         }
       }
       ats = ats.filter(_.it.hasNext)
     }
+    callback(MetricValue(gid, historicalPoints))
 
     ret
   }
@@ -161,8 +164,11 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
     }
 
     def callback(id: Mustang.TSID, tsp: TimeSeriesPoint): Unit = this.synchronized {
+      agg.update(id, tsp).map(pt => pCallback(MetricValue(gid, Seq(pt))))
+    }
+
+    def aggHistorical(id: Mustang.TSID, tsp: TimeSeriesPoint): Option[TimeSeriesPoint] = {
       agg.update(id, tsp)
-      pCallback(MetricValue(gid, Seq(agg.evaluate(tsp.tm))))
     }
   }
 
