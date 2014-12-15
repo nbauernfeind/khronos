@@ -27,7 +27,7 @@
                     <div ng-if="tags.length == 0" class="form-text"><span>None</span></div>
                     <ul class="tag-list">
                         <li class="tag-item" ng-repeat="tag in tags | orderBy:'tag'">
-                            <span>{{tag.tag}}</span>
+                            <span><i class="fa fa-tag"></i> {{tag.tag}}</span>
                         </li>
                     </ul>
                 </div>
