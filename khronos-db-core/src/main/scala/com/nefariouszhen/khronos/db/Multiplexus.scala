@@ -134,18 +134,20 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
       TS(id, new PeekIterator(dao.read(id, Time(0))))
     }).filter(_.it.hasNext).toSeq
 
-    val historicalPoints = mutable.ArrayBuffer[TimeSeriesPoint]()
+    val historicalPoints = mutable.ArrayBuffer[Seq[Double]]()
 
     while (ats.nonEmpty) {
       var currTm = ats.view.map(_.it.peek.tm).min
       for (ts <- ats) {
         if (ts.it.peek.tm == currTm) {
-          ret.aggHistorical(ts.id, ts.it.next()).map(historicalPoints += _)
+          for (pt <- ret.aggHistorical(ts.id, ts.it.next())) {
+            historicalPoints += Seq(pt.tm.toDouble, pt.value)
+          }
         }
       }
       ats = ats.filter(_.it.hasNext)
     }
-    callback(MetricValue(gid, historicalPoints))
+    callback(MetricValue(historicalPoints))
 
     ret
   }
@@ -164,7 +166,7 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
     }
 
     def callback(id: Mustang.TSID, tsp: TimeSeriesPoint): Unit = this.synchronized {
-      agg.update(id, tsp).map(pt => pCallback(MetricValue(gid, Seq(pt))))
+      agg.update(id, tsp).map(pt => pCallback(MetricValue(pt)))
     }
 
     def aggHistorical(id: Mustang.TSID, tsp: TimeSeriesPoint): Option[TimeSeriesPoint] = {

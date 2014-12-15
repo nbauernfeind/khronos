@@ -1,43 +1,35 @@
 'use strict';
 
-khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function($q, $scope, WebSocket) {
+khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function ($q, $scope, WebSocket) {
     function initConfig(name, def) {
         if ($scope.widget.config[name] === undefined) {
             $scope.widget.config[name] = def
         }
     }
+
     initConfig('tags', []);
-    initConfig('options', {renderer: "line", width: "100"});
-    initConfig('features', {
-        palette: 'spectrum14',
-        hover: {
-            xFormatter: function (x) {
-                return 't=' + x;
-            },
-            yFormatter: function (y) {
-                return '$' + y;
-            }
-        },
-        xAxis: true
-    });
+    initConfig('options', {labels: ['x']});
 
     $scope.widget.lastTm = 0;
     $scope.widget.data = [];
     $scope.widget.gidToIdx = {};
+    $scope.widget.options = $scope.widget.config.options;
 
-    console.log($scope.widget.config.options);
+    console.log($scope.widget.options);
     console.log($scope.widget.config.features);
 
     $scope.widget.notifications = [];
-    $scope.clearNotification = function(idx) {
+    $scope.clearNotification = function (idx) {
         $scope.widget.notifications.splice(idx, 1);
     };
 
     $scope.tags = $scope.widget.config.tags;
     $scope.renderers = ['area', 'bar', 'line', 'scatterplot'];
 
-    $scope.fetchSuggestions = function(viewValue) {
-        var tags = $scope.tags.map(function(t) { return t.tag; });
+    $scope.fetchSuggestions = function (viewValue) {
+        var tags = $scope.tags.map(function (t) {
+            return t.tag;
+        });
         var params = {type: "metric-typeahead", tags: tags, tagQuery: viewValue};
         var defer = $q.defer();
         WebSocket.sendRequest($scope, params, function (r) {
@@ -50,7 +42,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
         return defer.promise;
     };
 
-    $scope.formatSuggestion = function(suggestion, query) {
+    $scope.formatSuggestion = function (suggestion, query) {
         var matches = (suggestion.numMatches == 1) ? "match" : "matches";
 
         var text = replaceAll(encodeHTML(suggestion.tag), encodeHTML(query), '<em>$&</em>');
@@ -62,32 +54,33 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
             "</span></span>";
     };
 
-    var cancelSubscription = function() {};
+    var cancelSubscription = function () {
+    };
 
-    $scope.$watchCollection('tags', function() {
+    $scope.$watchCollection('tags', function () {
+        while ($scope.widget.data.length > 0) {
+            $scope.widget.data.pop();
+        }
+        $scope.widget.notifications = [];
+        cancelSubscription();
+
         if ($scope.tags.length > 0) {
-            while ($scope.widget.data.length > 0) {
-                $scope.widget.data.pop();
-            }
-            $scope.widget.notifications = [];
-            cancelSubscription();
-
             // TODO: dropdown aggregation mode (also auto detect agg mode)
-            var tags = $scope.tags.map(function(t) { return t.tag; });
+            var tags = $scope.tags.map(function (t) {
+                return t.tag;
+            });
             var params = {type: "metric-subscribe", tags: tags, agg: "AVG"};
-            cancelSubscription = WebSocket.sendRecurringRequest($scope, params, function(r) {
+            cancelSubscription = WebSocket.sendRecurringRequest($scope, params, function (r) {
                 handleMR(r);
-                //graph.update();
             });
         }
     });
 
     function handleMR(r) {
-        switch(r.type) {
+        switch (r.type) {
             case "header":
                 console.log(r);
                 handleHeaderMR(r);
-                console.log($scope.widget.data);
                 break;
             case "value":
                 handleValueMR(r);
@@ -107,23 +100,29 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     }
 
     function handleHeaderMR(r) {
-        var ts = {
-            name: "Aggregate",
-            data: []
-        };
-        $scope.widget.gidToIdx[r.id] = ts;
-        $scope.widget.data.push(ts);
-        //graph = resetGraph();
+        while ($scope.widget.options.labels.length < r.id) {
+            $scope.widget.options.labels.push($scope.widget.options.labels.length.toString);
+        }
+        $scope.widget.options.labels[r.id] = 'Aggregate';
     }
 
     function handleValueMR(r) {
-        if ($scope.widget.gidToIdx[r.id] === undefined) {
-            return handleNotificationMR({type: "error", what: "have not received a header for gid: " + r.id});
-        }
-        var ts = $scope.widget.gidToIdx[r.id];
-        var numPoints = r.points.length;
+       var numPoints = r.data.length;
         for (var i = 0; i < numPoints; ++i) {
-            ts.data.push({x: r.points[i].tm, y: r.points[i].value});
+            if (r.data[i].length > $scope.widget.options.labels.length + 1) {
+                return handleNotificationMR({
+                    type: "error",
+                    what: "have not received a header for timeseries #" + r.data[i].length
+                });
+            }
+            if (r.data[i] === null) {
+                handleNotificationMR({
+                    type: "error",
+                    what: "happened on line #" + i
+                });
+            }
+            r.data[i][0] = new Date(r.data[i][0] * 1000);
+            $scope.widget.data.push(r.data[i]);
         }
         $scope.widget.lastTm += 1;
     }

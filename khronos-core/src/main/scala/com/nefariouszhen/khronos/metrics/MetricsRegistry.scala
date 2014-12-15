@@ -103,7 +103,8 @@ class MetricsRegistry {
         implicit class WriteHelper(value: Double) {
           def ->(typ: String): Unit = {
             keyArr(valTypeIdx) = "valtype" -> typ
-            write(keyArr, tm, value)
+            // Note: convert nanoseconds into seconds.
+            write(keyArr, tm, value / 1e9)
           }
         }
 

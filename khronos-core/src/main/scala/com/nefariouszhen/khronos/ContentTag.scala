@@ -29,6 +29,11 @@ case class WildcardKeyTag(k: String) extends ContentTag {
   override def toTagString: String = s"$k*"
 }
 
+case class IllegalTag(k: String) extends ContentTag {
+  val v = "*"
+  override def toTagString: String = s"$k"
+}
+
 object ContentTag {
   def apply(partial: String): ContentTag = {
     partial match {
@@ -36,7 +41,7 @@ object ContentTag {
       case WILDCARD_VALUE(key, prefix) => WildcardTag(key, prefix)
       case EXACT(key, value) => ExactTag(key, value)
       case EXACT_KEY(prefix) => WildcardKeyTag(prefix)
-      case _ => throw new IllegalArgumentException(s"Unable to parse tag: $partial")
+      case _ => IllegalTag(partial)
     }
   }
 

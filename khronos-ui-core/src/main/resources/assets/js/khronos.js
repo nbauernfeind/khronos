@@ -1,7 +1,7 @@
 'use strict';
 
 var khronosApp = angular.module('khronos', ['ngRoute', 'ngResource', 'ngSanitize', 'mgcrea.ngStrap', 'ngTagsInput',
-    'angular-rickshaw']);
+    'angular-dygraphs']);
 
 khronosApp.config(['$routeProvider',
     function ($routeProvider) {

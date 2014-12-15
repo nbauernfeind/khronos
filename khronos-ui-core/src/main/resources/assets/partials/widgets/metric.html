@@ -1,5 +1,5 @@
-<form class="form" role="form">
-    <div ng-controller="MetricWidgetCtrl">
+<div class="metric" ng-controller="MetricWidgetCtrl">
+    <form class="form config" role="form">
         <div class="form-group">
             <label ng-if="widget.editable" class="control-label">Tags: </label>
 
@@ -26,41 +26,40 @@
                 <div ng-switch-when="false" class="tags-disp">
                     <div ng-if="tags.length == 0" class="form-text"><span>None</span></div>
                     <ul class="tag-list">
-                        <li class="tag-item" ng-repeat="tag in tags | orderBy:tag">
+                        <li class="tag-item" ng-repeat="tag in tags | orderBy:'tag'">
                             <span>{{tag.tag}}</span>
                         </li>
                     </ul>
                 </div>
             </div>
 
-            <div ng-if="widget.editable">
+            <div ng-if="false && widget.editable">
                 <label class="control-label">Renderer: </label>
 
                 <select class="form-control" ng-model="widget.config.options.renderer"
                         ng-options="r for r in renderers"></select>
             </div>
+        </div>
+    </form>
+    <div>
+        <ng-dygraphs
+                options="widget.config.options"
+                legend="widget.legend"
+                data="widget.data"
+                last-tm="widget.lastTm">
+        </ng-dygraphs>
 
-            <rickshaw class="fill"
-                    options="widget.config.options"
-                    features="widget.config.features"
-                    series="widget.data"
-                    last-tm="widget.lastTm">
-            </rickshaw>
-
+        <div ng-if="widget.notifications.length">
             <hr/>
-            <div>{{widget.lastTm}}</div>
-            <div ng-if="widget.notifications.length">
-                <hr/>
-                <div class="alert alert-dismissible" role="alert"
-                     ng-class="{ 'alert-danger': notification.type == 'error', 'alert-warning': notification.type == 'warn' }"
-                     ng-repeat="notification in widget.notifications | limitTo: 5">
-                    <button type="button" class="close" ng-click="clearNotification($index)">
-                        <span aria-hidden="true">&times;</span>
-                        <span class="sr-only">Close</span>
-                    </button>
-                    <b>{{notification.type}}: </b>{{notification.what}}
-                </div>
+            <div class="alert alert-dismissible" role="alert"
+                 ng-class="{ 'alert-danger': notification.type == 'error', 'alert-warning': notification.type == 'warn' }"
+                 ng-repeat="notification in widget.notifications | limitTo: 5">
+                <button type="button" class="close" ng-click="clearNotification($index)">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <b>{{notification.type}}: </b>{{notification.what}}
             </div>
         </div>
     </div>
-</form>
+</div>

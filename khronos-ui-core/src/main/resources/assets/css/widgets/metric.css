@@ -50,15 +50,14 @@
     font-style: italic;
 }
 
-.tags-disp .tag-list {
+.metric .tags-disp .tag-list {
     margin: 0;
     padding: 0;
     list-style-type: none;
     overflow: hidden;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eeeeee;
 }
-.tags-disp .tag-item {
+
+.metric .tags-disp .tag-item {
     background: #333333;
     border: 1px solid #000000;
     border-radius: 4px;
@@ -70,4 +69,10 @@
     font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
     height: 26px;
     line-height: 25px;
+}
+
+.metric .ng-dygraphs {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eeeeee;
 }
