@@ -99,5 +99,7 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', 'Widgets', function ($scope, 
     }
 
     // To more quickly test. (Maybe I should save state in a cookie instead?)
-    $scope.addWidget({name: "Metric", partial: "partials/widgets/metric.html"});
+    $scope.copyWidget({name: "Metric", title: "Khronos Write Metric Tm", partial: "partials/widgets/metric.html", config: {tags: [{tag: "system:multiplexus"}, {tag:"type:writeTm"}, {tag:"valtype:mean"}]}});
+    $scope.copyWidget({name: "Metric", title: "Auto Complete Query Count", partial: "partials/widgets/metric.html", config: {tags: [{tag: "system:mustang"}, {tag:"type:queryTm"}, {tag:"valtype:count"}]}});
+    $scope.copyWidget({name: "Metric", title: "Auto Complete Query Tm (seconds)", partial: "partials/widgets/metric.html", config: {tags: [{tag: "system:mustang"}, {tag:"type:queryTm"}, {tag:"valtype:p99"}]}});
 }]);
