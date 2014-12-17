@@ -9,22 +9,12 @@ import scala.collection.JavaConversions._
 
 sealed trait Aggregator {
   protected[this] val ts = new util.TreeMap[Mustang.TSID, Double]()
-  protected[this] var lastTm = Time(0)
 
-  def update(id: Mustang.TSID, tsp: TimeSeriesPoint): Option[TimeSeriesPoint] = {
-    var ret: Option[TimeSeriesPoint] = None
-    if (tsp.tm > lastTm && lastTm != Time(0)) {
-      ret = Some(evaluate(lastTm))
-    }
-    // Ignore Old Data (Need to completely re-aggregate graphs anyways.)
-    if (tsp.tm >= lastTm) {
-      lastTm = tsp.tm
-      ts.put(id, tsp.value)
-    }
-    ret
+  def update(id: Mustang.TSID, tsp: TimeSeriesPoint): Unit = {
+    ts.put(id, tsp.value)
   }
 
-  def evaluate(tm: Time): TimeSeriesPoint
+  def evaluate(tm: Time): Double
 }
 
 object Aggregator {
@@ -37,18 +27,22 @@ object Aggregator {
   }
 
   class Max extends Aggregator {
-    override def evaluate(tm: Time): TimeSeriesPoint = TimeSeriesPoint(tm, ts.values.max)
+    def evaluate(tm: Time): Double = ts.values.max
   }
 
   class Min extends Aggregator {
-    override def evaluate(tm: Time): TimeSeriesPoint = TimeSeriesPoint(tm, ts.values.min)
+    def evaluate(tm: Time): Double = ts.values.min
   }
 
   class Sum extends Aggregator {
-    override def evaluate(tm: Time): TimeSeriesPoint = TimeSeriesPoint(tm, ts.values.sum)
+    def evaluate(tm: Time): Double = ts.values.sum
   }
 
   class Avg extends Aggregator {
-    override def evaluate(tm: Time): TimeSeriesPoint = TimeSeriesPoint(tm, ts.values.sum / ts.values.size)
+    def evaluate(tm: Time): Double = if (ts.values.size == 0) Double.NaN else ts.values.sum / ts.values.size
+  }
+
+  class Now extends Aggregator {
+    def evaluate(tm: Time): Double = tm.toSeconds
   }
 }

@@ -29,6 +29,10 @@ case class WildcardKeyTag(k: String) extends ContentTag {
   override def toTagString: String = s"$k*"
 }
 
+case class SplitTag(k: String, v: String) extends ContentTag {
+  override def toTagString: String = s"$k:$v^"
+}
+
 case class IllegalTag(k: String) extends ContentTag {
   val v = "*"
   override def toTagString: String = s"$k"
@@ -39,6 +43,7 @@ object ContentTag {
     partial match {
       case WILDCARD_KEY(prefix) => WildcardKeyTag(prefix)
       case WILDCARD_VALUE(key, prefix) => WildcardTag(key, prefix)
+      case SPLIT_VALUE(key, prefix) => SplitTag(key, prefix)
       case EXACT(key, value) => ExactTag(key, value)
       case EXACT_KEY(prefix) => WildcardKeyTag(prefix)
       case _ => IllegalTag(partial)
@@ -53,4 +58,5 @@ object ContentTag {
   val EXACT_KEY = """([a-zA-Z0-9.]*)""".r
   val WILDCARD_KEY = """([a-zA-Z0-9.]*)\*""".r
   val WILDCARD_VALUE = """([a-zA-Z0-9.]+):([a-zA-Z0-9.]*)\*""".r
+  val SPLIT_VALUE = """([a-zA-Z0-9.]+):([a-zA-Z0-9.]*)\^""".r
 }

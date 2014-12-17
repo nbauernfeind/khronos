@@ -8,15 +8,22 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     }
 
     initConfig('tags', []);
-    initConfig('options', {labels: ['x']});
     initConfig('aggMethod', 'avg');
 
     $scope.widget.lastTm = 0;
     $scope.widget.data = [];
     $scope.widget.gidToIdx = {};
-    $scope.widget.options = $scope.widget.config.options;
 
-    $scope.widget.notifications = [];
+    function resetWidgetTransients() {
+        while ($scope.widget.data.length > 0) {
+            $scope.widget.data.pop();
+        }
+        $scope.widget.options = {labels: ['tm']};
+        $scope.widget.notifications = [];
+    }
+
+    resetWidgetTransients();
+
     $scope.clearNotification = function (idx) {
         $scope.widget.notifications.splice(idx, 1);
     };
@@ -56,10 +63,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     };
 
     var updateSubscription = function () {
-        while ($scope.widget.data.length > 0) {
-            $scope.widget.data.pop();
-        }
-        $scope.widget.notifications = [];
+        resetWidgetTransients();
         cancelSubscription();
 
         if ($scope.tags.length > 0) {
@@ -107,7 +111,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
         while ($scope.widget.options.labels.length < r.id) {
             $scope.widget.options.labels.push($scope.widget.options.labels.length.toString);
         }
-        $scope.widget.options.labels[r.id] = 'Aggregate';
+        $scope.widget.options.labels[r.id] = r.label;
     }
 
     function handleValueMR(r) {

@@ -12,7 +12,7 @@ import com.nefariouszhen.khronos.db.{TimeSeriesMapping, TimeSeriesMappingDAO}
 import com.nefariouszhen.khronos.metrics.MetricsRegistry
 import com.nefariouszhen.khronos.metrics.MetricsRegistry.Timer
 import com.nefariouszhen.khronos.websocket.{WebSocketManager, WebSocketRequest, WebSocketWriter}
-import com.nefariouszhen.khronos.{ExactKeyTag, ContentTag, ExactTag, WildcardKeyTag, WildcardTag}
+import com.nefariouszhen.khronos.{SplitTag, ExactKeyTag, ContentTag, ExactTag, WildcardKeyTag, WildcardTag}
 import com.nefariouszhen.trie.BurstTrie
 import io.dropwizard.lifecycle.Managed
 
@@ -100,6 +100,7 @@ class Mustang @Inject()(db: TimeSeriesMappingDAO, registry: MetricsRegistry) ext
       case _: ExactTag => tagMap.get(tag)
       case WildcardKeyTag(prefix) => forPrefix(prefix)
       case WildcardTag(key, prefix) => forPrefix(s"$key:$prefix")
+      case SplitTag(key, prefix) => forPrefix(s"$key:$prefix")
       case _ => None
     }
 
@@ -126,10 +127,11 @@ class Mustang @Inject()(db: TimeSeriesMappingDAO, registry: MetricsRegistry) ext
     ContentGroup.intersection(tags.map(resolve))
   }
 
-  private[this] def resolveCompletions(partial: ContentTag): Iterator[ContentTag] = acquire(rwLock.readLock) {
+  def resolveCompletions(partial: ContentTag): Iterator[ContentTag] = acquire(rwLock.readLock) {
     partial match {
       case WildcardKeyTag(prefix) => keyTrie.query(prefix).map(k => WildcardTag(k, ""))
       case WildcardTag(key, prefix) => valTrie.query(s"$key:$prefix")
+      case SplitTag(key, prefix) => valTrie.query(s"$key:$prefix")
       case ExactKeyTag(prefix) => valTrie.query(prefix)
       case ExactTag(key, prefix) => valTrie.query(s"$key:$prefix")
       case _ => Iterator()

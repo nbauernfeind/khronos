@@ -14,7 +14,7 @@ case class MetricSubscribe(tags: Seq[String], agg: Aggregation) extends WebSocke
 sealed trait MetricResponse extends Discoverable
 
 @JsonTypeName("header")
-case class MetricHeader(id: Int, tags: Map[String, String]) extends MetricResponse
+case class MetricHeader(id: Int, label: String, tags: Map[String, String]) extends MetricResponse
 
 /**
  * This is a value array that is structured to work with common graphing libraries.
@@ -22,12 +22,6 @@ case class MetricHeader(id: Int, tags: Map[String, String]) extends MetricRespon
  */
 @JsonTypeName("value")
 case class MetricValue(data: Seq[Seq[Double]]) extends MetricResponse
-
-object MetricValue {
-  def apply(pt: TimeSeriesPoint): MetricValue = {
-    MetricValue(Seq(Seq(pt.tm.toSeconds, pt.value)))
-  }
-}
 
 @JsonTypeName("warn")
 case class MetricWarning(what: String) extends MetricResponse

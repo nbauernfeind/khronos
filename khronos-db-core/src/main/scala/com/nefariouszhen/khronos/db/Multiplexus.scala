@@ -10,7 +10,7 @@ import com.nefariouszhen.khronos.db.index.Mustang.TSID
 import com.nefariouszhen.khronos.metrics.MetricsRegistry
 import com.nefariouszhen.khronos.util.{PeekIterator, SafeRunnable}
 import com.nefariouszhen.khronos.websocket.{WebSocketManager, WebSocketWriter}
-import com.nefariouszhen.khronos.{ContentTag, ExactTag, Time, TimeSeriesPoint}
+import com.nefariouszhen.khronos.{SplitTag, ContentTag, ExactTag, Time, TimeSeriesPoint}
 import io.dropwizard.lifecycle.Managed
 import org.slf4j.LoggerFactory
 
@@ -18,34 +18,30 @@ import scala.collection.mutable
 
 object Multiplexus {
   val WRITE_DELAY_SECONDS = 1
+  val LINE_LIMIT = 50
 
-  trait ListenerCallback extends Closeable {
-    def isClosed: Boolean
-
-    def callback(id: Mustang.TSID, tsp: TimeSeriesPoint): Unit
+  val NULL_CLOSEABLE = new Closeable {
+    def close(): Unit = {}
   }
 
   class ListenerSet(id: Mustang.TSID) {
-    private[this] var listeners: List[ListenerCallback] = Nil
+    // Returns true if still open.
+    type Callback = (Mustang.TSID, TimeSeriesPoint) => Boolean
+    private[this] var listeners: List[Callback] = Nil
 
     def isEmpty: Boolean = listeners.isEmpty
 
-    def add(callback: ListenerCallback): Unit = this.synchronized {
+    def add(callback: Callback): Unit = this.synchronized {
       listeners = callback :: listeners
     }
 
     def deliver(tsp: TimeSeriesPoint): Long = this.synchronized {
-      listeners = listeners.filterNot(_.isClosed)
       var cnt = 0
-      for (listener <- listeners) {
+      listeners = listeners.filter(listener => {
         cnt += 1
-        listener.callback(id, tsp)
-      }
+        listener(id, tsp)
+      })
       cnt
-    }
-
-    def reduce(): Unit = this.synchronized {
-      listeners = listeners.filterNot(_.isClosed)
     }
   }
 }
@@ -114,50 +110,90 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
 
   def subscribe(query: MetricSubscribe, callback: MetricResponse => Unit): Closeable = {
     val tags = query.tags.map(ContentTag.apply)
-    val active = mustang.query(tags)
-    if (active.isEmpty) {
+
+    val splitTags = tags collect { case t: SplitTag => t }
+
+    if (splitTags.size > 1) {
+      callback(MetricError("Can only split on a single key, but found: " + splitTags.mkString(", ")))
+      return NULL_CLOSEABLE
+    }
+
+    val typeTag = tags.find(_.k == "type").orElse(tags.headOption)
+    val lines = if (splitTags.size == 1) mustang.resolveCompletions(splitTags.head) else typeTag.iterator
+
+    val filteredTags = tags.filterNot(splitTags.contains).toList
+
+    val subscription = new SubscriptionListener(callback)
+
+    case class TS(aggId: Int, id: Int, it: PeekIterator[TimeSeriesPoint])
+    val tsBuffer = mutable.ArrayBuffer[TS]()
+    var linesSkipped = 0
+
+    for (line <- lines) {
+      val lineTags = line :: filteredTags
+      val active = mustang.query(lineTags)
+
+      if (!active.isEmpty) {
+        if (subscription.numLines >= LINE_LIMIT) {
+          linesSkipped += 1
+        } else {
+          val aggId = subscription.newLine(Aggregator(query.agg))
+          for (id <- active.iterator) {
+            entryPoints.getOrElseUpdate(id, new ListenerSet(id)).add(subscription.onWrite(aggId))
+          }
+          callback(MetricHeader(aggId, line.v, lineTags.map(tag => tag.k -> tag.v).toMap))
+
+          for (id <- active.iterator) {
+            tsBuffer += TS(aggId, id, new PeekIterator(dao.read(id, Time(0))))
+          }
+        }
+      }
+    }
+
+    if (linesSkipped > 0) {
+      callback(MetricWarning(s"Too many lines. Dropping $linesSkipped matches. (keeping: $LINE_LIMIT"))
+    }
+
+    var ats = tsBuffer.toList
+    val historicalPoints = mutable.ArrayBuffer[Seq[Double]]()
+
+    if (ats.isEmpty) {
       callback(MetricWarning("No active timeseries for this query."))
     }
-
-    // TODO: Multiple aggregations for an individual query.
-    val gid = 1
-    val ret = new AggregateListener(gid, Aggregator(query.agg), callback)
-
-    for (id <- active.iterator) {
-      entryPoints.getOrElseUpdate(id, new ListenerSet(id)).add(ret)
-    }
-    callback(MetricHeader(gid, tags.map(tag => tag.k -> tag.v).toMap))
-
-    // Compute historical data.
-    case class TS(id: Int, it: PeekIterator[TimeSeriesPoint])
-    var ats = (for (id <- active.iterator) yield {
-      TS(id, new PeekIterator(dao.read(id, Time(0))))
-    }).filter(_.it.hasNext).toSeq
-
-    val historicalPoints = mutable.ArrayBuffer[Seq[Double]]()
 
     while (ats.nonEmpty) {
       var currTm = ats.view.map(_.it.peek.tm).min
       for (ts <- ats) {
         if (ts.it.peek.tm == currTm) {
-          for (pt <- ret.aggHistorical(ts.id, ts.it.next())) {
-            historicalPoints += Seq(pt.tm.toSeconds, pt.value)
+          for (pt <- subscription.onHistorical(ts.aggId)(ts.id, ts.it.next())) {
+            historicalPoints += pt
           }
         }
       }
       ats = ats.filter(_.it.hasNext)
     }
+
     callback(MetricValue(historicalPoints))
 
-    ret
+    subscription
   }
 
   def timeseries: Iterable[Seq[ExactTag]] = idMap.timeSeries().map(_.tags)
 
-  class AggregateListener(gid: Int, agg: Aggregator, pCallback: MetricResponse => Unit) extends ListenerCallback {
-    streamCount.incrementAndGet()
-    private[this] val closed = new AtomicBoolean(false)
+  trait Line {
+    def evaluate(tm: Time): Double
+    def update(id: Mustang.TSID, tsp: TimeSeriesPoint): Boolean
+  }
 
+  class TimeLine extends Line {
+    def evaluate(tm: Time): Double = tm.toSeconds
+    def update(id: Mustang.TSID, tsp: TimeSeriesPoint): Boolean = true
+  }
+
+  class SubscriptionListener(pCallback: MetricResponse => Unit) extends Closeable {
+    streamCount.incrementAndGet()
+
+    private[this] val closed = new AtomicBoolean(false)
     def isClosed: Boolean = closed.get()
 
     def close(): Unit = {
@@ -165,12 +201,40 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
       streamCount.decrementAndGet()
     }
 
-    def callback(id: Mustang.TSID, tsp: TimeSeriesPoint): Unit = this.synchronized {
-      agg.update(id, tsp).map(pt => pCallback(MetricValue(pt)))
+    private[this] val lines = mutable.ArrayBuffer[Aggregator](new Aggregator.Now)
+    def newLine(agg: Aggregator): Int = {
+      val id = lines.length
+      lines += agg
+      id
     }
 
-    def aggHistorical(id: Mustang.TSID, tsp: TimeSeriesPoint): Option[TimeSeriesPoint] = {
-      agg.update(id, tsp)
+    def numLines: Int = lines.size - 1
+
+    private[this] var lastTm = Time(0)
+    // This returns true if it is still open.
+    def onWrite(gid: Int)(id: Mustang.TSID, tsp: TimeSeriesPoint): Boolean = this.synchronized {
+      if (isClosed) return false
+      if (tsp.tm < lastTm) return true
+
+      if (lastTm != tsp.tm && lastTm != Time(0)) {
+        pCallback(MetricValue(Seq(lines.map(_.evaluate(lastTm)))))
+      }
+      lastTm = tsp.tm
+      lines(gid).update(id, tsp)
+
+      !isClosed
+    }
+
+    def onHistorical(gid: Int)(id: Mustang.TSID, tsp: TimeSeriesPoint): Option[Seq[Double]] = {
+      var ret: Option[Seq[Double]] = None
+      if (tsp.tm < lastTm) return ret
+
+      if (lastTm != tsp.tm && lastTm != Time(0)) {
+        ret = Some(lines.map(_.evaluate(lastTm)))
+      }
+      lastTm = tsp.tm
+      lines(gid).update(id, tsp)
+      ret
     }
   }
 
