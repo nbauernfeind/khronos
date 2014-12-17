@@ -86,7 +86,7 @@ class MetricsRegistry {
 
   def writeMetrics(write: (Seq[ExactTag], Time, Double) => Unit): Unit = this.synchronized {
     val startTm = System.currentTimeMillis()
-    val tm = Time(startTm / 1e3.toLong)
+    val tm = Time.fromSeconds(startTm / 1e3)
     for ((keys, metric) <- registry) metric match {
       case m: Meter => write(keys, tm, m.getValue)
       case m: Counter => write(keys, tm, m.getValue)
@@ -104,7 +104,7 @@ class MetricsRegistry {
           def ->(typ: String): Unit = {
             keyArr(valTypeIdx) = "valtype" -> typ
             // Note: convert nanoseconds into seconds.
-            write(keyArr, tm, value / 1e9)
+            write(keyArr, tm, if (typ == "count") value else value / 1e9)
           }
         }
 

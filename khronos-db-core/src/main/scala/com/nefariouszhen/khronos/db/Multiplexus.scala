@@ -141,7 +141,7 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
       for (ts <- ats) {
         if (ts.it.peek.tm == currTm) {
           for (pt <- ret.aggHistorical(ts.id, ts.it.next())) {
-            historicalPoints += Seq(pt.tm.toDouble, pt.value)
+            historicalPoints += Seq(pt.tm.toSeconds, pt.value)
           }
         }
       }

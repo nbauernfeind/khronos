@@ -9,6 +9,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
 
     initConfig('tags', []);
     initConfig('options', {labels: ['x']});
+    initConfig('aggMethod', 'avg');
 
     $scope.widget.lastTm = 0;
     $scope.widget.data = [];
@@ -21,7 +22,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     };
 
     $scope.tags = $scope.widget.config.tags;
-    $scope.renderers = ['area', 'bar', 'line', 'scatterplot'];
+    $scope.aggregationMethods = ['avg', 'sum', 'max', 'min'];
 
     $scope.fetchSuggestions = function (viewValue) {
         var tags = $scope.tags.map(function (t) {
@@ -54,7 +55,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     var cancelSubscription = function () {
     };
 
-    $scope.$watchCollection('tags', function () {
+    var updateSubscription = function () {
         while ($scope.widget.data.length > 0) {
             $scope.widget.data.pop();
         }
@@ -66,12 +67,14 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
             var tags = $scope.tags.map(function (t) {
                 return t.tag;
             });
-            var params = {type: "metric-subscribe", tags: tags, agg: "AVG"};
+            var params = {type: "metric-subscribe", tags: tags, agg: $scope.widget.config.aggMethod};
             cancelSubscription = WebSocket.sendRecurringRequest($scope, params, function (r) {
                 handleMR(r);
             });
         }
-    });
+    };
+    $scope.$watchCollection('tags', updateSubscription);
+    $scope.$watch('widget.config.aggMethod', updateSubscription);
 
     function handleMR(r) {
         switch (r.type) {

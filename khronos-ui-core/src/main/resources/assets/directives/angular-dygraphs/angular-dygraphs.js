@@ -219,7 +219,7 @@ angular.module("angular-dygraphs", [
                         $(this).width(maxWidth);
                     });
 
-                    var width = $(parent).width();
+                    var width = $(parent).width() - 20;
                     var height = width / (2*1.618);
 
                     var legendHeight = $(element.find('div.legend')).outerHeight(true);

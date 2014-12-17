@@ -13,11 +13,14 @@ sealed trait Aggregator {
 
   def update(id: Mustang.TSID, tsp: TimeSeriesPoint): Option[TimeSeriesPoint] = {
     var ret: Option[TimeSeriesPoint] = None
-    if (lastTm != Time(0) && lastTm != tsp.tm) {
+    if (tsp.tm > lastTm && lastTm != Time(0)) {
       ret = Some(evaluate(lastTm))
     }
-    lastTm = tsp.tm
-    ts.put(id, tsp.value)
+    // Ignore Old Data (Need to completely re-aggregate graphs anyways.)
+    if (tsp.tm >= lastTm) {
+      lastTm = tsp.tm
+      ts.put(id, tsp.value)
+    }
     ret
   }
 

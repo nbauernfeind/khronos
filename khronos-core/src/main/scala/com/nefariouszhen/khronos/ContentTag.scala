@@ -49,8 +49,8 @@ object ContentTag {
     def ->(v: String): ExactTag = ExactTag(k, v)
   }
 
-  val EXACT = """([a-zA-Z0-9]+):([a-zA-Z0-9]*)""".r
-  val EXACT_KEY = """([a-zA-Z0-9]*)""".r
-  val WILDCARD_KEY = """([a-zA-Z0-9]*)\*""".r
-  val WILDCARD_VALUE = """([a-zA-Z0-9]+):([a-zA-Z0-9]*)\*""".r
+  val EXACT = """([a-zA-Z0-9.]+):([a-zA-Z0-9.]*)""".r
+  val EXACT_KEY = """([a-zA-Z0-9.]*)""".r
+  val WILDCARD_KEY = """([a-zA-Z0-9.]*)\*""".r
+  val WILDCARD_VALUE = """([a-zA-Z0-9.]+):([a-zA-Z0-9.]*)\*""".r
 }

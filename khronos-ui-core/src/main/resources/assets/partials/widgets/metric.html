@@ -33,11 +33,11 @@
                 </div>
             </div>
 
-            <div ng-if="false && widget.editable">
-                <label class="control-label">Renderer: </label>
+            <div ng-if="widget.editable">
+                <label class="control-label">Aggregation Method: </label>
 
-                <select class="form-control" ng-model="widget.config.options.renderer"
-                        ng-options="r for r in renderers"></select>
+                <select class="form-control" ng-model="widget.config.aggMethod"
+                        ng-options="m for m in aggregationMethods"></select>
             </div>
         </div>
     </form>
@@ -49,6 +49,9 @@
                 last-tm="widget.lastTm">
         </ng-dygraphs>
 
+        <hr/>
+        <div>Debug: NumPoints {{widget.data.length}}</div>
+        <!--<div ng-repeat="pt in widget.data | limitTo: -5">{{pt}}</div>-->
         <div ng-if="widget.notifications.length">
             <hr/>
             <div class="alert alert-dismissible" role="alert"

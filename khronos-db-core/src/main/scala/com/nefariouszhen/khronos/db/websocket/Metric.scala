@@ -25,7 +25,7 @@ case class MetricValue(data: Seq[Seq[Double]]) extends MetricResponse
 
 object MetricValue {
   def apply(pt: TimeSeriesPoint): MetricValue = {
-    MetricValue(Seq(Seq(pt.tm.toDouble, pt.value)))
+    MetricValue(Seq(Seq(pt.tm.toSeconds, pt.value)))
   }
 }
 

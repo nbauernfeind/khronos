@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.{JsonMappingException, ObjectMapper}
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
+import com.nefariouszhen.khronos.util.Executors
 import io.dropwizard.jackson.Discoverable
 import org.atmosphere.client.TrackMessageSizeInterceptor
 import org.atmosphere.config.service.WebSocketHandlerService
@@ -110,6 +111,7 @@ class WebSocketManager @Inject()(mapper: ObjectMapper, factory: WebSocketState.F
   private[this] val LOG = LoggerFactory.getLogger(this.getClass)
   private[this] val callbackMap = mutable.HashMap[Class[_], Callback[_]]()
   private[this] val uuidToState = mutable.HashMap[String, WebSocketState]()
+  private[this] val pool = Executors.newCachedThreadPool("websocket")
 
   // A cancel request is just a special callback.
   registerCallback[CancelRequest](cancelRequest)
@@ -139,8 +141,8 @@ class WebSocketManager @Inject()(mapper: ObjectMapper, factory: WebSocketState.F
     uuidToState.remove(webSocket.resource.uuid).foreach(_.close())
   }
 
-  override def onTextMessage(webSocket: WebSocket, message: String): Unit = this.synchronized {
-    val state = uuidToState.getOrElse(webSocket.resource.uuid, return)
+  override def onTextMessage(webSocket: WebSocket, message: String): Unit = async {
+    val state = this.synchronized { uuidToState.getOrElse(webSocket.resource.uuid, return) }
     try {
       val m = mapper.readValue(message, classOf[WebSocketRequest])
 
@@ -153,6 +155,7 @@ class WebSocketManager @Inject()(mapper: ObjectMapper, factory: WebSocketState.F
         case None => LOG.warn("No callback found for request with type: {}", m.getClass)
       }
     } catch {
+      // TODO: Send these errors to user.
       case e: JsonMappingException => LOG.debug("Could not parse message.", e)
       case e: Exception => LOG.warn("Unexpected error handling client request.", e)
     }
@@ -166,5 +169,11 @@ class WebSocketManager @Inject()(mapper: ObjectMapper, factory: WebSocketState.F
 
   private[this] def cancelRequest(writer: WebSocketWriter, cancel: CancelRequest): Unit = {
     writer.socket.close(cancel.callbackId)
+  }
+
+  private[this] def async(thunk: => Unit): Unit = {
+    pool.submit(new Runnable() {
+      override def run(): Unit = thunk
+    })
   }
 }
