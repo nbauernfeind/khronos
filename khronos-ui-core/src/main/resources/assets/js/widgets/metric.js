@@ -76,6 +76,10 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     $scope.$watchCollection('tags', updateSubscription);
     $scope.$watch('widget.config.aggMethod', updateSubscription);
 
+    $scope.$watch('widgetSize()', function() { setTimeout(function() {
+        $scope.$apply(function() { $scope.widget.lastTm += 1; });
+    }, 10); });
+
     function handleMR(r) {
         switch (r.type) {
             case "header":

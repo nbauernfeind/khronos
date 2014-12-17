@@ -54,6 +54,12 @@ khronosApp.controller('StatusTabCtrl', ['$scope', 'Widgets', function ($scope, W
 khronosApp.controller('ExploreTabCtrl', ['$scope', 'Widgets', function ($scope, Widgets) {
     $scope.global.currTab = "Explore";
     $scope.widgets = [];
+    $scope.currSize = "M";
+    $scope.sizes = ["S", "M", "L", "XL"];
+
+    $scope.setSize = function (sz) {
+        $scope.currSize = sz;
+    };
 
     $scope.addWidget = function (widget) {
         $scope.widgets.push(newWidget(widget));
@@ -78,13 +84,34 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', 'Widgets', function ($scope, 
         $scope.widgets.splice(idx, 1);
     };
 
+    $scope.widgetSize = function () {
+       switch($scope.numColumns()) {
+           case 6:
+               return "col-xs-2 col-sm-2 col-md-2 col-lg-2";
+           case 4:
+               return "col-xs-3 col-sm-3 col-md-3 col-lg-3";
+           case 3:
+               return "col-xs-4 col-sm-4 col-md-4 col-lg-4";
+           case 2:
+               return "col-xs-6 col-sm-6 col-md-6 col-lg-6";
+           default:
+               return "col-xs-12 col-sm-12 col-md-12 col-lg-12";
+       }
+    };
+
+    $scope.numColumns = function () {
+        var szIdx = $scope.sizes.indexOf($scope.currSize);
+        var numElements = {
+            desktop: [6, 3, 2, 1],
+            'tablet-landscape': [4, 2, 1, 1],
+            tablet: [2, 2, 1, 1],
+            mobile: [1, 1, 1, 1]
+        };
+        return numElements[$scope.global.displayMode][szIdx];
+    };
+
     $scope.idxCompletesRow = function (idx) {
-        switch($scope.global.displayMode) {
-            case 'desktop':
-                return (idx + 1)%3 == 0;
-            default:
-                return (idx + 1)%2 == 0;
-        }
+        return (idx + 1) % $scope.numColumns() == 0;
     };
 
     function newWidget(widget) {
@@ -99,7 +126,22 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', 'Widgets', function ($scope, 
     }
 
     // To more quickly test. (Maybe I should save state in a cookie instead?)
-    $scope.copyWidget({name: "Metric", title: "Khronos Write Metric Tm", partial: "partials/widgets/metric.html", config: {tags: [{tag: "system:multiplexus"}, {tag:"type:writeTm"}, {tag:"valtype:mean"}]}});
-    $scope.copyWidget({name: "Metric", title: "Auto Complete Query Count", partial: "partials/widgets/metric.html", config: {tags: [{tag: "system:mustang"}, {tag:"type:queryTm"}, {tag:"valtype:count"}]}});
-    $scope.copyWidget({name: "Metric", title: "Auto Complete Query Tm (seconds)", partial: "partials/widgets/metric.html", config: {tags: [{tag: "system:mustang"}, {tag:"type:queryTm"}, {tag:"valtype:p99"}]}});
+    $scope.copyWidget({
+        name: "Metric",
+        title: "Khronos Write Metric Tm",
+        partial: "partials/widgets/metric.html",
+        config: {tags: [{tag: "system:multiplexus"}, {tag: "type:writeTm"}, {tag: "valtype:mean"}]}
+    });
+    $scope.copyWidget({
+        name: "Metric",
+        title: "Auto Complete Query Count",
+        partial: "partials/widgets/metric.html",
+        config: {tags: [{tag: "system:mustang"}, {tag: "type:queryTm"}, {tag: "valtype:count"}]}
+    });
+    $scope.copyWidget({
+        name: "Metric",
+        title: "Auto Complete Query Tm (seconds)",
+        partial: "partials/widgets/metric.html",
+        config: {tags: [{tag: "system:mustang"}, {tag: "type:queryTm"}, {tag: "valtype:p99"}]}
+    });
 }]);
