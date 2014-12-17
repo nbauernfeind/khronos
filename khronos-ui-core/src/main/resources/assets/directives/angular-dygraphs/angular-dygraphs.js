@@ -38,6 +38,8 @@ angular.module("angular-dygraphs", [
                 var myOptions = {};
                 var graph;
 
+                var currWidth = 0;
+
                 scope.$watch("lastTm", function () {
                     $.extend(true, options, scope.options);
                     if (options === undefined) {
@@ -56,7 +58,10 @@ angular.module("angular-dygraphs", [
                         options.labelsDivWidth = 0;
                     }
 
-                    resize();
+                    if (graph === undefined || currWidth != $(parent).width()) {
+                        currWidth = $(parent).width();
+                        resize();
+                    }
 
                     if (graph !== undefined) {
                         graph.updateOptions(options);
