@@ -87,7 +87,6 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     function handleMR(r) {
         switch (r.type) {
             case "header":
-                console.log(r);
                 handleHeaderMR(r);
                 break;
             case "value":

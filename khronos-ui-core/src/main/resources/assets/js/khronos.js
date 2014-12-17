@@ -1,7 +1,7 @@
 'use strict';
 
 var khronosApp = angular.module('khronos', ['ngRoute', 'ngResource', 'ngSanitize', 'mgcrea.ngStrap', 'ngTagsInput',
-    'angular-dygraphs', 'angular-displaymode']);
+    'angular-dygraphs', 'angular-displaymode', 'ngStorage']);
 
 khronosApp.config(['$routeProvider',
     function ($routeProvider) {
@@ -51,11 +51,16 @@ khronosApp.controller('StatusTabCtrl', ['$scope', 'Widgets', function ($scope, W
     $scope.global.currTab = "Status";
 }]);
 
-khronosApp.controller('ExploreTabCtrl', ['$scope', 'Widgets', function ($scope, Widgets) {
+khronosApp.controller('ExploreTabCtrl', ['$scope', '$localStorage', function ($scope, $localStorage) {
     $scope.global.currTab = "Explore";
-    $scope.widgets = [];
     $scope.currSize = "M";
     $scope.sizes = ["S", "M", "L", "XL"];
+
+    // Faster to iterate by storing the graphs I was looking at...
+    $scope.storage = $localStorage.$default({
+        widgets: []
+    });
+    $scope.widgets = $scope.storage.widgets;
 
     $scope.setSize = function (sz) {
         $scope.currSize = sz;
@@ -124,24 +129,4 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', 'Widgets', function ($scope, 
             config: $scope.deepCopy(widget.config || {})
         };
     }
-
-    // To more quickly test. (Maybe I should save state in a cookie instead?)
-    $scope.copyWidget({
-        name: "Metric",
-        title: "Khronos Write Metric Tm",
-        partial: "partials/widgets/metric.html",
-        config: {tags: [{tag: "system:multiplexus"}, {tag: "type:writeTm"}, {tag: "valtype:mean"}]}
-    });
-    $scope.copyWidget({
-        name: "Metric",
-        title: "Auto Complete Query Count",
-        partial: "partials/widgets/metric.html",
-        config: {tags: [{tag: "system:mustang"}, {tag: "type:queryTm"}, {tag: "valtype:count"}]}
-    });
-    $scope.copyWidget({
-        name: "Metric",
-        title: "Auto Complete Query Tm (seconds)",
-        partial: "partials/widgets/metric.html",
-        config: {tags: [{tag: "system:mustang"}, {tag: "type:queryTm"}, {tag: "valtype:p99"}]}
-    });
 }]);
