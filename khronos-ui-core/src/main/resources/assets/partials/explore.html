@@ -3,7 +3,7 @@
     <div class="container"><div class="pull-right">
         <div class="btn-group">
             <button type="button" class="btn btn-default nvabar-btn" ng-repeat="sz in sizes"
-                    ng-class="{active: sz == currSize}" ng-click="setSize(sz)">
+                    ng-class="{active: sz == storage.currSize}" ng-click="setSize(sz)">
                 {{sz}}
             </button>
         </div>

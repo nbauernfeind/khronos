@@ -53,17 +53,17 @@ khronosApp.controller('StatusTabCtrl', ['$scope', 'Widgets', function ($scope, W
 
 khronosApp.controller('ExploreTabCtrl', ['$scope', '$localStorage', function ($scope, $localStorage) {
     $scope.global.currTab = "Explore";
-    $scope.currSize = "M";
     $scope.sizes = ["S", "M", "L", "XL"];
 
     // Faster to iterate by storing the graphs I was looking at...
     $scope.storage = $localStorage.$default({
-        widgets: []
+        widgets: [],
+        currSize: "M"
     });
     $scope.widgets = $scope.storage.widgets;
 
     $scope.setSize = function (sz) {
-        $scope.currSize = sz;
+        $scope.storage.currSize = sz;
     };
 
     $scope.addWidget = function (widget) {
@@ -105,7 +105,7 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', '$localStorage', function ($s
     };
 
     $scope.numColumns = function () {
-        var szIdx = $scope.sizes.indexOf($scope.currSize);
+        var szIdx = $scope.sizes.indexOf($scope.storage.currSize);
         var numElements = {
             desktop: [6, 3, 2, 1],
             'tablet-landscape': [4, 2, 1, 1],
