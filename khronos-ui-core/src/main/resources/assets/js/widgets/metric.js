@@ -21,7 +21,14 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
         while ($scope.data.length > 0) {
             $scope.data.pop();
         }
-        $scope.options = {labels: ['tm'], labelsKMB: true};
+        $scope.options = {
+            labels: ['tm'],
+            labelsKMB: true,
+            highlightCircleSize: 2,
+            highlightSeriesOpts: {
+                highlightCircleSize: 3
+            }
+        };
         $scope.notifications = [];
         $scope.lastTm = 0;
     }

@@ -1,62 +1,100 @@
 (function () {
     var gid = 0;
     var allGraphs = {};
+    var cfg = {
+        seriesLocked: false,
+        highlightSeries: "",
+        highlightTm: 0
+    };
+
+    var rehighlight = function (me) {
+        if (cfg.highlightTm != 0) {
+            var fallback = me.getLabels()[0];
+            var mn = me.getLabels().indexOf(cfg.highlightSeries) >= 0 ? cfg.highlightSeries : fallback;
+            var idx = dygraphsBinarySearch(me, cfg.highlightTm);
+            if (idx < me.getLeftBoundary_(idx)) {
+                idx = me.getLeftBoundary_(idx);
+            }
+            me.setSelection(idx, mn, cfg.seriesLocked);
+        }
+    };
 
     var drawCallback = (function () {
         var currRange;
         var block = false;
         return function (me, initial) {
-            if (block || initial) return;
+            if (block) return;
             block = true;
+
             var opts = {
-                dateWindow: me.xAxisRange()
+                dateWindow: me.xAxisRange(),
+                valueRange: null
             };
+
             if (currRange === undefined || currRange[0] != opts.dateWindow[0] || currRange[1] != opts.dateWindow[1]) {
                 currRange = opts.dateWindow;
                 for (id in allGraphs) {
                     if (allGraphs.hasOwnProperty(id)) {
                         allGraphs[id].updateOptions(opts);
+                        rehighlight(allGraphs[id]);
                     }
                 }
+            } else {
+                rehighlight(me);
             }
+
             block = false
         };
     })();
 
-    var highlightCallback = (function() {
+    var highlightCallback = (function () {
         var block = false;
-        return function(event, x, points, row, seriesName) {
+        return function (event, x, points, row, seriesName) {
             if (block) return;
             block = true;
-            var me = this;
+            if (!cfg.seriesLocked) {
+                cfg.highlightSeries = seriesName;
+            }
+            cfg.highlightTm = x;
             for (id in allGraphs) {
-                if (allGraphs.hasOwnProperty(id) && me != allGraphs[id]) {
-                    var idx = dygraphsBinarySearch(allGraphs[id], x);
-                    if (idx !== null) {
-                        allGraphs[id].setSelection(idx, seriesName);
-                    }
+                if (allGraphs.hasOwnProperty(id)) {
+                    rehighlight(allGraphs[id]);
                 }
             }
             block = false;
         }
     })();
 
-    var unhighlightCallback = (function() {
+    var unhighlightCallback = (function () {
         var block = false;
-        return function(event, x, points, row, seriesName) {
-            if (block) return;
+        return function (event, x, points, row, seriesName) {
+            if (block || cfg.seriesLocked) return;
             block = true;
-            var me = this;
             for (id in allGraphs) {
-                if (allGraphs.hasOwnProperty(id) && me != allGraphs[id]) {
-                    var idx = dygraphsBinarySearch(allGraphs[id], x);
-                    if (idx !== null) {
-                        allGraphs[id].clearSelection();
-                    }
+                if (allGraphs.hasOwnProperty(id)) {
+                    allGraphs[id].clearSelection();
                 }
             }
             block = false;
         }
+    })();
+
+    var clickCallback = (function () {
+        return function () {
+            var me = this;
+            var mSeries = me.getHighlightSeries();
+            if (mSeries != me.getLabels()[0]) {
+                cfg.highlightSeries = mSeries;
+            }
+            cfg.seriesLocked = !cfg.seriesLocked;
+
+            var x = me.getSelection();
+            for (id in allGraphs) {
+                if (allGraphs.hasOwnProperty(id)) {
+                    rehighlight(allGraphs[id]);
+                }
+            }
+        };
     })();
 
     // Returns the index corresponding to xVal, or null if there is none.
@@ -161,7 +199,6 @@
                             return;
                         }
 
-                        //console.log(event, x, points, row);
                         var html = "<table><tr><th colspan='2'>";
                         if (typeof moment === "function") {
                             html += moment(x).format(scope.legend.dateFormat);
@@ -215,8 +252,6 @@
                         popover.width(popoverWidth);
                         popover.height(popoverHeight);
                         popover.animate({left: x + 'px', top: (event.pageY - (popoverHeight / 2)) + 'px'}, 20);
-
-                        //console.log("Moving", {left: x + 'px', top: (event.pageY - (popoverHeight / 2)) + 'px'})
                     };
 
                     scope.unhighlightCallback = function (event, a, b) {
@@ -238,7 +273,6 @@
                             popover.animate({left: x + 'px'}, 10);
                             return;
                         }
-                        //console.log(event, a, b);
                         popover.hide();
                     };
 
@@ -255,7 +289,6 @@
                     };
 
                     scope.selectSeries = function (series) {
-                        //console.log("Change series", series);
                         series.visible = !series.visible;
                         graph.setVisibility(series.column, series.visible);
                     };
@@ -301,7 +334,8 @@
                         graph.updateOptions({
                             drawCallback: drawCallback,
                             highlightCallback: highlightCallback,
-                            unhighlightCallback: unhighlightCallback
+                            unhighlightCallback: unhighlightCallback,
+                            clickCallback: clickCallback
                         });
 
                         var id = gid;

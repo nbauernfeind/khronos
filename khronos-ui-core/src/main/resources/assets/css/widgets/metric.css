@@ -78,3 +78,9 @@
     border-top: 1px solid #eeeeee;
     overflow: hidden;
 }
+
+.metric .dygraph-legend > span.highlight { border: 2px solid red; }
+.metric .dygraph-legend {
+    left: 100px !important;
+    top: 5px !important;
+}
