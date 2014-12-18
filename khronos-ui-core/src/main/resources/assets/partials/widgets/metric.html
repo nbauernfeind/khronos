@@ -7,7 +7,7 @@
                 <div ng-switch-when="true">
                     <tags-input class="metric"
                                 display-property="tag"
-                                ng-model="tags"
+                                ng-model="widget.config.tags"
                                 placeholder="Add a tag"
                                 min-length="0"
                                 add-on-comma="true"
@@ -24,9 +24,9 @@
 
                 </div>
                 <div ng-switch-when="false" class="tags-disp">
-                    <div ng-if="tags.length == 0" class="form-text"><span>None</span></div>
+                    <div ng-if="widget.config.tags.length == 0" class="form-text"><span>None</span></div>
                     <ul class="tag-list">
-                        <li class="tag-item" ng-repeat="tag in tags | orderBy:'tag'">
+                        <li class="tag-item" ng-repeat="tag in widget.config.tags | orderBy:'tag'">
                             <span><i class="fa fa-tag"></i> {{tag.tag}}</span>
                         </li>
                     </ul>
@@ -43,20 +43,20 @@
     </form>
     <div>
         <ng-dygraphs
-                options="widget.options"
-                legend="widget.legend"
-                data="widget.data"
-                last-tm="widget.lastTm">
+                options="options"
+                legend="legend"
+                data="data"
+                last-tm="lastTm">
         </ng-dygraphs>
 
         <hr/>
-        <div>Debug: NumPoints {{widget.data.length}}</div>
-        <!--<div ng-repeat="pt in widget.data | limitTo: -5">{{pt}}</div>-->
-        <div ng-if="widget.notifications.length">
+        <div>Debug: NumPoints {{data.length}}</div>
+        <!--<div ng-repeat="pt in data | limitTo: -5">{{pt}}</div>-->
+        <div ng-if="notifications.length">
             <hr/>
             <div class="alert alert-dismissible" role="alert"
                  ng-class="{ 'alert-danger': notification.type == 'error', 'alert-warning': notification.type == 'warn' }"
-                 ng-repeat="notification in widget.notifications | limitTo: 5">
+                 ng-repeat="notification in notifications | limitTo: 5">
                 <button type="button" class="close" ng-click="clearNotification($index)">
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only">Close</span>

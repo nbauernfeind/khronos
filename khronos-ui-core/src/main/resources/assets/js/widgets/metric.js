@@ -3,36 +3,39 @@
 khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function ($q, $scope, WebSocket) {
     function initConfig(name, def) {
         if ($scope.widget.config[name] === undefined) {
-            $scope.widget.config[name] = def
+            $scope.widget.config[name] = def;
         }
     }
 
+    initConfig('version', 1);
     initConfig('tags', []);
     initConfig('aggMethod', 'avg');
 
-    $scope.widget.lastTm = 0;
-    $scope.widget.data = [];
-    $scope.widget.gidToIdx = {};
+    // Temporarily fix broken storages.
+    delete $scope.widget['data'];
+    delete $scope.widget['options'];
+
+    $scope.lastTm = 0;
+    $scope.data = [];
 
     function resetWidgetTransients() {
-        while ($scope.widget.data.length > 0) {
-            $scope.widget.data.pop();
+        while ($scope.data.length > 0) {
+            $scope.data.pop();
         }
-        $scope.widget.options = {labels: ['tm'], labelsKMB: true};
-        $scope.widget.notifications = [];
+        $scope.options = {labels: ['tm'], labelsKMB: true};
+        $scope.notifications = [];
     }
 
     resetWidgetTransients();
 
     $scope.clearNotification = function (idx) {
-        $scope.widget.notifications.splice(idx, 1);
+        $scope.notifications.splice(idx, 1);
     };
 
-    $scope.tags = $scope.widget.config.tags;
     $scope.aggregationMethods = ['avg', 'sum', 'max', 'min'];
 
     $scope.fetchSuggestions = function (viewValue) {
-        var tags = $scope.tags.map(function (t) {
+        var tags = $scope.widget.config.tags.map(function (t) {
             return t.tag;
         });
         var params = {type: "metric-typeahead", tags: tags, tagQuery: viewValue};
@@ -66,9 +69,9 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
         resetWidgetTransients();
         cancelSubscription();
 
-        if ($scope.tags.length > 0) {
-            // TODO: dropdown aggregation mode (also auto detect agg mode)
-            var tags = $scope.tags.map(function (t) {
+        if ($scope.widget.config.tags.length > 0) {
+            // TODO: auto detect agg mode
+            var tags = $scope.widget.config.tags.map(function (t) {
                 return t.tag;
             });
             var params = {type: "metric-subscribe", tags: tags, agg: $scope.widget.config.aggMethod};
@@ -77,11 +80,11 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
             });
         }
     };
-    $scope.$watchCollection('tags', updateSubscription);
+    $scope.$watchCollection('widget.config.tags', updateSubscription);
     $scope.$watch('widget.config.aggMethod', updateSubscription);
 
     $scope.$watch('widgetSize()', function() { setTimeout(function() {
-        $scope.$apply(function() { $scope.widget.lastTm += 1; });
+        $scope.$apply(function() { $scope.lastTm += 1; });
     }, 10); });
 
     function handleMR(r) {
@@ -103,20 +106,20 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     }
 
     function handleNotificationMR(r) {
-        $scope.widget.notifications.push(r);
+        $scope.notifications.push(r);
     }
 
     function handleHeaderMR(r) {
-        while ($scope.widget.options.labels.length < r.id) {
-            $scope.widget.options.labels.push($scope.widget.options.labels.length.toString);
+        while ($scope.options.labels.length < r.id) {
+            $scope.options.labels.push($scope.options.labels.length.toString);
         }
-        $scope.widget.options.labels[r.id] = r.label;
+        $scope.options.labels[r.id] = r.label;
     }
 
     function handleValueMR(r) {
        var numPoints = r.data.length;
         for (var i = 0; i < numPoints; ++i) {
-            if (r.data[i].length > $scope.widget.options.labels.length + 1) {
+            if (r.data[i].length > $scope.options.labels.length + 1) {
                 return handleNotificationMR({
                     type: "error",
                     what: "have not received a header for timeseries #" + r.data[i].length
@@ -129,9 +132,9 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
                 });
             }
             r.data[i][0] = new Date(r.data[i][0] * 1000);
-            $scope.widget.data.push(r.data[i]);
+            $scope.data.push(r.data[i]);
         }
-        $scope.widget.lastTm += 1;
+        $scope.lastTm += 1;
     }
 
     function replaceAll(str, substr, newSubstr) {
