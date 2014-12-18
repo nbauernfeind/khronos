@@ -151,7 +151,7 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
     }
 
     if (linesSkipped > 0) {
-      callback(MetricWarning(s"Too many lines. Dropping $linesSkipped matches. (keeping: $LINE_LIMIT"))
+      callback(MetricWarning(s"Too many lines. Dropping $linesSkipped matches. (keeping: $LINE_LIMIT)"))
     }
 
     var ats = tsBuffer.toList
