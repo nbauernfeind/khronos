@@ -1,5 +1,5 @@
 <div class="display-mode" ng-display-mode="global.displayMode"></div>
-<nav class="navbar panel-widget fill">
+<nav class="navbar navbar-fixed-top subnavbar-fixed-top panel-widget fill">
     <div class="container"><div class="pull-right">
         <div class="btn-group">
             <button type="button" class="btn btn-default nvabar-btn" ng-repeat="sz in sizes"
@@ -21,7 +21,7 @@
     </div></div>
 </nav>
 
-<div class="container-fluid">
+<div class="sub-body container-fluid">
     <div class="row"></div>
     <div ng-class="widgetSize()" ng-repeat-start="widget in widgets">
         <div class="panel panel-widget">

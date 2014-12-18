@@ -52,6 +52,16 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
 }
 
+.subnavbar-fixed-top {
+    top: 50px;
+    background-color: #f9f9f9;
+    z-index: 1020;
+}
+
+.sub-body {
+    padding-top: 70px;
+}
+
 .panel-widget > .panel-heading {
     color: #000000;
     background-color: #ED4337;
