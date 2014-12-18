@@ -27,15 +27,15 @@ object Aggregator {
   }
 
   class Max extends Aggregator {
-    def evaluate(tm: Time): Double = ts.values.max
+    def evaluate(tm: Time): Double = if (ts.values.size == 0) Double.NaN else ts.values.max
   }
 
   class Min extends Aggregator {
-    def evaluate(tm: Time): Double = ts.values.min
+    def evaluate(tm: Time): Double = if (ts.values.size == 0) Double.NaN else ts.values.min
   }
 
   class Sum extends Aggregator {
-    def evaluate(tm: Time): Double = ts.values.sum
+    def evaluate(tm: Time): Double = if (ts.values.size == 0) Double.NaN else ts.values.sum
   }
 
   class Avg extends Aggregator {
