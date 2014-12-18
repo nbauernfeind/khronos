@@ -96,7 +96,8 @@
                     var parent = element.parent();
                     var mainDiv = element.children()[0];
                     var chartDiv = $(mainDiv).children()[0];
-                    var legendDiv = $(mainDiv).children()[1];
+                    var loadingDiv = $(mainDiv).children()[1];
+                    var legendDiv = $(mainDiv).children()[2];
                     var popover = element.find('.dypopover');
 
                     var popoverWidth = 0;
@@ -267,10 +268,6 @@
                     });
 
                     function resize() {
-                        if (options.file === undefined || options.file.length <= 0) return;
-                        if (graph === undefined) {
-                            createGraph();
-                        }
                         var maxWidth = 0;
                         $(element.find('div.series')).each(function () {
                             var itemWidth = $(this).width();
@@ -283,7 +280,15 @@
                         var width = $(parent).width() - 20;
                         var height = width / (2 * 1.618);
 
-                        var legendHeight = $(element.find('div.legend')).outerHeight(true);
+                        loadingDiv.width = width;
+                        loadingDiv.setAttribute('style', 'height:' + height + 'px');
+                        chartDiv.width = width;
+                        chartDiv.setAttribute('style', 'height:' + height + 'px');
+
+                        if (options.file === undefined || options.file.length <= 0) return;
+                        if (graph === undefined) {
+                            createGraph();
+                        }
                         graph.resize(width, height);
                         chartArea = $(chartDiv).offset();
                         chartArea.bottom = chartArea.top + height;

@@ -113,3 +113,9 @@ body {
 .form-text {
     padding-top: 7px;
 }
+
+.mega-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

@@ -1,5 +1,6 @@
-<div class="ng-dygraphs" ng-show="data.length">
-    <div class="graph"></div>
+<div class="ng-dygraphs" ng-show="lastTm > 0">
+    <div class="graph" ng-show="data.length > 0"></div>
+    <div class="loading mega-center" ng-show="data.length == 0"><i class="fa fa-spinner fa-spin fa-4x"></i></div>
     <div class="legend" ng-if="LegendEnabled">
         <div class="series-container">
             <div ng-repeat="series in legendSeries" class="series">

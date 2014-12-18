@@ -15,7 +15,6 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     delete $scope.widget['data'];
     delete $scope.widget['options'];
 
-    $scope.lastTm = 0;
     $scope.data = [];
 
     function resetWidgetTransients() {
@@ -24,6 +23,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
         }
         $scope.options = {labels: ['tm'], labelsKMB: true};
         $scope.notifications = [];
+        $scope.lastTm = 0;
     }
 
     resetWidgetTransients();
@@ -70,6 +70,8 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
         cancelSubscription();
 
         if ($scope.widget.config.tags.length > 0) {
+            $scope.lastTm += 1; // Tell DyGraph we're loading.
+
             // TODO: auto detect agg mode
             var tags = $scope.widget.config.tags.map(function (t) {
                 return t.tag;
@@ -83,9 +85,20 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     $scope.$watchCollection('widget.config.tags', updateSubscription);
     $scope.$watch('widget.config.aggMethod', updateSubscription);
 
-    $scope.$watch('widgetSize()', function() { setTimeout(function() {
-        $scope.$apply(function() { $scope.lastTm += 1; });
-    }, 10); });
+    var onWidgetSizeChangeTO = null;
+    var onWidgetSizeChange = function () {
+        if (onWidgetSizeChangeTO != null) {
+            clearTimeout(onWidgetSizeChangeTO);
+        }
+        onWidgetSizeChangeTO = setTimeout(function () {
+            $scope.$apply(function () {
+                if ($scope.lastTm > 0) {
+                    $scope.lastTm += 1;
+                }
+            });
+        }, 100);
+    };
+    $scope.$watch('widgetSize()', onWidgetSizeChange);
 
     function handleMR(r) {
         switch (r.type) {
