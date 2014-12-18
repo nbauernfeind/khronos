@@ -6,11 +6,10 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit
 
 import com.google.inject.Inject
 import com.nefariouszhen.khronos.db.index.Mustang
-import com.nefariouszhen.khronos.db.index.Mustang.TSID
 import com.nefariouszhen.khronos.metrics.MetricsRegistry
 import com.nefariouszhen.khronos.util.{PeekIterator, SafeRunnable}
 import com.nefariouszhen.khronos.websocket.{WebSocketManager, WebSocketWriter}
-import com.nefariouszhen.khronos.{SplitTag, ContentTag, ExactTag, Time, TimeSeriesPoint}
+import com.nefariouszhen.khronos.{WildcardTag, SplitTag, ContentTag, ExactTag, Time, TimeSeriesPoint}
 import io.dropwizard.lifecycle.Managed
 import org.slf4j.LoggerFactory
 
@@ -113,9 +112,20 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
 
     val splitTags = tags collect { case t: SplitTag => t }
 
+    // TODO: Cartesian Product of Splits (if there are few enough tags, why not?)
     if (splitTags.size > 1) {
       callback(MetricError("Can only split on a single key, but found: " + splitTags.mkString(", ")))
       return NULL_CLOSEABLE
+    }
+
+    val valTypeQuery = mustang.query(tags, WildcardTag("valtype", ""), numResults = 2)
+    if (splitTags.filter(_.k == "valtype").isEmpty && valTypeQuery.size > 1) {
+      callback(MetricWarning("Consider filtering on 'valtype', aggregating across different types is not recommended."))
+    }
+
+    val typeQuery = mustang.query(tags, WildcardTag("type", ""), numResults = 2)
+    if (splitTags.filter(_.k == "type").isEmpty && typeQuery.size > 1) {
+      callback(MetricWarning("Consider filtering on 'type', aggregating across different types is not recommended."))
     }
 
     val typeTag = tags.find(_.k == "type").orElse(tags.headOption)
@@ -127,18 +137,24 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
 
     case class TS(aggId: Int, id: Int, it: PeekIterator[TimeSeriesPoint])
     val tsBuffer = mutable.ArrayBuffer[TS]()
+
+    // Let's only keep LINE_LIMIT lines to prevent the UI from being too slow, and also from doing invalid work.
     var linesSkipped = 0
 
+    // Note: we name each line after the first valid tag from: split tag, type tag, initial tag
     for (line <- lines) {
       val lineTags = line :: filteredTags
       val active = mustang.query(lineTags)
 
+      // Only add this line if the other tags make it valid.
       if (!active.isEmpty) {
         if (subscription.numLines >= LINE_LIMIT) {
           linesSkipped += 1
         } else {
           val aggId = subscription.newLine(Aggregator(query.agg))
           for (id <- active.iterator) {
+            // TODO: not thread safe
+            // TODO: race condition between historical data and new-writes
             entryPoints.getOrElseUpdate(id, new ListenerSet(id)).add(subscription.onWrite(aggId))
           }
           callback(MetricHeader(aggId, line.v, lineTags.map(tag => tag.k -> tag.v).toMap))
@@ -161,6 +177,7 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
       callback(MetricWarning("No active timeseries for this query."))
     }
 
+    // While there are historical ticks to iterate over, keep generating data points.
     while (ats.nonEmpty) {
       var currTm = ats.view.map(_.it.peek.tm).min
       for (ts <- ats) {
@@ -173,6 +190,7 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
       ats = ats.filter(_.it.hasNext)
     }
 
+    // Send known historical data.
     callback(MetricValue(historicalPoints))
 
     subscription

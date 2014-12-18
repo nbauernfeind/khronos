@@ -98,6 +98,10 @@ khronosApp.factory('WebSocket', ['$q', '$rootScope', function($q, $rootScope) {
     };
 
     function doSendRequest(callback) {
+        if (!Service.isConnected) {
+            return;
+        }
+
         var request = callback.request;
         socket.push(JSON.stringify(request));
     }
@@ -117,9 +121,7 @@ khronosApp.factory('WebSocket', ['$q', '$rootScope', function($q, $rootScope) {
             cb: callback
         };
 
-        if (Service.isConnected) {
-            doSendRequest(callbacks[request.callbackId]);
-        }
+        doSendRequest(callbacks[request.callbackId]);
 
         request.cancel = function() {
             if (request.cancelled || !callbacks.hasOwnProperty(request.callbackId)) {
@@ -135,7 +137,8 @@ khronosApp.factory('WebSocket', ['$q', '$rootScope', function($q, $rootScope) {
                     type: 'cancel',
                     callbackId: request.callbackId
                 };
-                socket.push(JSON.stringify(cancel));
+
+                doSendRequest({request: cancel});
             }
         };
 

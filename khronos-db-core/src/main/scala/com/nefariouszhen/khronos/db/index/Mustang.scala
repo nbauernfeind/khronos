@@ -109,18 +109,21 @@ class Mustang @Inject()(db: TimeSeriesMappingDAO, registry: MetricsRegistry) ext
 
   def query(request: AutoCompleteRequest): Iterable[AutoCompleteResult] = acquire(rwLock.readLock, metrics.queryTm) {
     metrics.numQueries.increment()
+    query(request.tags.map(ContentTag.apply), ContentTag(request.tagQuery), request.numResults.getOrElse(10))
+  }
 
-    val resolvedFilters = request.tags.map(ContentTag.apply).map(resolve)
+  def query(tags: Seq[ContentTag], tagQuery: ContentTag, numResults: Int = 10): Iterable[AutoCompleteResult] = acquire(rwLock.readLock, metrics.queryTm) {
+    val resolvedFilters = tags.map(resolve)
     val filter = ContentGroup.intersection(resolvedFilters)
     if (resolvedFilters.nonEmpty && filter.isEmpty) return Iterable()
 
-    val results = for (tag <- resolveCompletions(ContentTag(request.tagQuery))) yield {
+    val results = for (tag <- resolveCompletions(tagQuery)) yield {
       val group = resolve(tag)
-      val sz = if (request.tags.nonEmpty) ContentGroup.countIntersection(Array(filter, group)) else group.size
+      val sz = if (tags.nonEmpty) ContentGroup.countIntersection(Array(filter, group)) else group.size
       AutoCompleteResult(tag.toTagString, sz)
     }
 
-    results.filter(_.numMatches > 0).take(request.numResults.getOrElse(10)).toIterable
+    results.filter(_.numMatches > 0).take(numResults).toIterable
   }
 
   def query(tags: Seq[ContentTag]): ContentGroup[TSID] = acquire(rwLock.readLock, metrics.intersectTm) {
