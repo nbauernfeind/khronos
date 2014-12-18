@@ -43,11 +43,11 @@ object WebSocketState {
 
 class WebSocketState @Inject()(@Assisted r: AtmosphereResource, mapper: ObjectMapper) extends Closeable {
   private[this] val closed = new AtomicBoolean(false)
-  private[this] val closeables = mutable.HashMap[Int, Closeable]()
+  private[this] val closeables = mutable.HashMap[Int, mutable.ArrayBuffer[Closeable]]()
   private[this] val scalaMapper = new ObjectMapper with ScalaObjectMapper
 
   def write[T: Manifest](cid: Int, t: T): Unit = this.synchronized {
-    if (!closed.get) {
+    if (!closed.get && closeables.contains(cid)) {
       val typ = scalaMapper.constructType[WebSocketResponse[T]]
       val typMapper = mapper.writerWithType(typ)
       r.write(typMapper.writeValueAsString(WebSocketResponse(cid, t)))
@@ -56,23 +56,29 @@ class WebSocketState @Inject()(@Assisted r: AtmosphereResource, mapper: ObjectMa
 
   def manage(cid: Int, state: Closeable): Unit = this.synchronized {
     if (!closed.get) {
-      closeables.put(cid, state).map(_.close())
+      closeables.get(cid) match {
+        case Some(buf) => buf += state
+        case None => state.close()
+      }
     } else {
       state.close()
     }
   }
 
   def close(cid: Int) = this.synchronized {
-    closeables.remove(cid).foreach(_.close)
+    closeables.remove(cid).foreach(_.foreach(_.close))
   }
 
   def close(): Unit = this.synchronized {
     closed.set(true)
-    closeables.values.foreach(_.close)
+    closeables.values.foreach(_.foreach(_.close))
     closeables.clear()
   }
 
-  def newWriter(r: WebSocketRequest): WebSocketWriter = new WebSocketWriter(this, r.callbackId, r.recurring)
+  def newWriter(r: WebSocketRequest): WebSocketWriter = {
+    closeables.put(r.callbackId, mutable.ArrayBuffer[Closeable]())
+    new WebSocketWriter(this, r.callbackId, r.recurring)
+  }
 }
 
 class WebSocketWriter(private[websocket] val socket: WebSocketState, cid: Int, recurring: Boolean) {
