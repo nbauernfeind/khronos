@@ -33,7 +33,6 @@ class HomeWidgetResource @Inject() (tsdb: Multiplexus) {
     widgets += w
   }
 
-  addWidget(new BlankWidget)
   addWidget(new MetricWidget)
 
   @GET

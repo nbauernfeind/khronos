@@ -9,7 +9,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
 
     initConfig('version', 1);
     initConfig('tags', []);
-    initConfig('aggMethod', 'avg');
+    initConfig('aggMethod', 'sum');
 
     // Temporarily fix broken storages.
     delete $scope.widget['data'];

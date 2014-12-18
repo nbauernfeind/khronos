@@ -124,7 +124,7 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', '$localStorage', function ($s
         return {
             name: widget.name,
             partial: widget.partial,
-            title: "New " + widget.name,
+            title: "",
             editable: true,
             config: $scope.deepCopy(widget.config || {})
         };
