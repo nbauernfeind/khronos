@@ -19,6 +19,14 @@
         }
     };
 
+    function min(a, b) {
+        return (a < b) ? a : b;
+    }
+
+    function max(a, b) {
+        return (a > b) ? a : b;
+    }
+
     var drawCallback = (function () {
         var currRange;
         var block = false;
@@ -27,15 +35,34 @@
             block = true;
 
             var opts = {
-                dateWindow: me.xAxisRange(),
-                valueRange: null
+                dateWindow: me.xAxisRange()
             };
 
-            if (currRange === undefined || currRange[0] != opts.dateWindow[0] || currRange[1] != opts.dateWindow[1]) {
+            var isReset = !me.isZoomed();
+            if (isReset) {
+                var r = opts.dateWindow;
+                r[0] = me.xAxisExtremes()[0];
+                r[1] = me.xAxisExtremes()[1];
+                for (id in allGraphs) {
+                    if (allGraphs.hasOwnProperty(id)) {
+                        r[0] = min(allGraphs[id].xAxisExtremes()[0], r[0]);
+                        r[1] = max(allGraphs[id].xAxisExtremes()[1], r[1]);
+                    }
+                }
+
+                opts.valueRange = null;
+            }
+
+            if (isReset || currRange === undefined || currRange[0] != opts.dateWindow[0] || currRange[1] != opts.dateWindow[1]) {
                 currRange = opts.dateWindow;
                 for (id in allGraphs) {
                     if (allGraphs.hasOwnProperty(id)) {
-                        allGraphs[id].updateOptions(opts);
+                        var g = allGraphs[id];
+                        var myOpts = $.extend({}, opts);
+                        if (!isReset) {
+                            myOpts.valueRange = g.yAxisRange();
+                        }
+                        g.updateOptions(myOpts);
                         rehighlight(allGraphs[id]);
                     }
                 }
@@ -125,7 +152,8 @@
                     data: '=',
                     options: '=',
                     legend: '=?',
-                    lastTm: '=' // When to redraw because of new data.
+                    loading: '=', // Are we currently loading data?
+                    lastTm: '='   // When to redraw because of new data.
                 },
                 templateUrl: "directives/angular-dygraphs/angular-dygraphs.html",
                 link: function (scope, element, attrs) {
@@ -152,6 +180,9 @@
                     scope.$watchGroup(['lastTm', 'options'], function () {
                         options = $.extend(true, {}, scope.options);
                         options.file = scope.data;
+                        if (options.dateWindow === undefined && scope.data.length > 0) {
+                            options.dateWindow = [scope.data[0][0], scope.data[scope.data.length - 1][0]];
+                        }
 
                         if (graph === undefined || currWidth != $(parent).width()) {
                             currWidth = $(parent).width();
@@ -159,6 +190,7 @@
                         }
 
                         if (graph !== undefined && options.file !== undefined && options.file.length > 0) {
+                            options.dateWindow[1] = min(options.dateWindow[1], scope.data[scope.data.length - 1][0]);
                             graph.updateOptions(options);
                         }
                     }, true);

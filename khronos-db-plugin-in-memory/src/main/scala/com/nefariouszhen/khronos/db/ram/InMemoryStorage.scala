@@ -38,20 +38,22 @@ class InMemoryStorage(len: Int) {
       }
 
       private[this] def primeNext(): Boolean = InMemoryStorage.this.synchronized {
-        nextIdx = Math.max(nextIdx, idx.get() - len)
-        if (idx.get() > nextIdx) {
-          val offset = (nextIdx % len).toInt * POINT_SIZE
-          nextIdx += 1
+        do {
+          nextIdx = Math.max(nextIdx, idx.get() - len)
+          if (idx.get() > nextIdx) {
+            val offset = (nextIdx % len).toInt * POINT_SIZE
+            nextIdx += 1
 
-          val pt = TimeSeriesPoint(
-            Time(storage.getLong(offset)),
-            storage.getDouble(offset + 8)
-          )
+            val pt = TimeSeriesPoint(
+              Time(storage.getLong(offset)),
+              storage.getDouble(offset + 8)
+            )
 
-          current = Some(pt)
-        } else {
-          current = None
-        }
+            current = Some(pt)
+          } else {
+            current = None
+          }
+        } while (current.isDefined && current.get.tm < fromTm)
 
         current.isDefined
       }

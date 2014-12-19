@@ -1,3 +1,23 @@
+/* Bootstrap Bug */
+.dropdown .btn-default:focus {
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
+
+.dropdown .btn-default:hover {
+    color: #333;
+    background-color: #e6e6e6;
+    border-color: #adadad;
+}
+
+.dropdown.btn-group.open .btn-default {
+    color: #333;
+    background-color: #e6e6e6;
+    border-color: #adadad;
+}
+/* EOB */
+
 .navbar-inverse .navbar-brand {
     color: #ffffff;
 }

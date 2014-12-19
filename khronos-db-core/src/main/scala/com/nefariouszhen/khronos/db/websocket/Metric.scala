@@ -8,7 +8,7 @@ import com.nefariouszhen.khronos.websocket.WebSocketRequest
 import io.dropwizard.jackson.Discoverable
 
 @JsonTypeName("metric-subscribe")
-case class MetricSubscribe(tags: Seq[String], agg: Aggregation) extends WebSocketRequest
+case class MetricSubscribe(tags: Seq[String], agg: Aggregation, startTm: Long, timeRange: Long) extends WebSocketRequest
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = As.PROPERTY, property = "type")
 sealed trait MetricResponse extends Discoverable

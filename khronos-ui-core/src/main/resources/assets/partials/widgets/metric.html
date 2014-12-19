@@ -42,12 +42,7 @@
         </div>
     </form>
     <div>
-        <ng-dygraphs
-                options="options"
-                legend="legend"
-                data="data"
-                last-tm="lastTm">
-        </ng-dygraphs>
+        <ng-dygraphs options="options" legend="legend" data="data" last-tm="lastTm" loading="loading"></ng-dygraphs>
 
         <hr/>
         <div>Debug: NumPoints {{data.length}} x {{options.labels.length - 1}}</div>

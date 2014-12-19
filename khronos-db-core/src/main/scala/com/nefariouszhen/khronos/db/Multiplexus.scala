@@ -108,11 +108,13 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
   }
 
   def subscribe(query: MetricSubscribe, callback: MetricResponse => Unit): Closeable = {
-    val tags = query.tags.map(ContentTag.apply)
+    val startTm = Time.fromSeconds(query.startTm)
+    val endTm = Time.fromSeconds(query.startTm + query.timeRange)
 
+    val tags = query.tags.map(ContentTag.apply)
     val splitTags = tags collect { case t: SplitTag => t }
 
-    // TODO: Cartesian Product of Splits (if there are few enough tags, why not?)
+    // TODO: Cartesian Product of Splits (if there are few enough tags; why not?)
     if (splitTags.size > 1) {
       callback(MetricError("Can only split on a single key, but found: " + splitTags.mkString(", ")))
       return NULL_CLOSEABLE
@@ -160,7 +162,7 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
           callback(MetricHeader(aggId, line.v, lineTags.map(tag => tag.k -> tag.v).toMap))
 
           for (id <- active.iterator) {
-            tsBuffer += TS(aggId, id, new PeekIterator(dao.read(id, Time(0))))
+            tsBuffer += TS(aggId, id, new PeekIterator(dao.read(id, startTm)))
           }
         }
       }
@@ -170,24 +172,28 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
       callback(MetricWarning(s"Too many lines. Dropping $linesSkipped matches. (keeping: $LINE_LIMIT)"))
     }
 
-    var ats = tsBuffer.toList
+    var ats = tsBuffer.filter(_.it.hasNext).toList
     val historicalPoints = mutable.ArrayBuffer[Seq[Double]]()
 
     if (ats.isEmpty) {
-      callback(MetricWarning("No active timeseries for this query."))
+      callback(MetricWarning("No active timeseries for this query in this time period."))
     }
 
     // While there are historical ticks to iterate over, keep generating data points.
     while (ats.nonEmpty) {
       var currTm = ats.view.map(_.it.peek.tm).min
-      for (ts <- ats) {
-        if (ts.it.peek.tm == currTm) {
-          for (pt <- subscription.onHistorical(ts.aggId)(ts.id, ts.it.next())) {
-            historicalPoints += pt
+      if (currTm <= endTm) {
+        for (ts <- ats) {
+          if (ts.it.peek.tm == currTm) {
+            for (pt <- subscription.onHistorical(ts.aggId)(ts.id, ts.it.next())) {
+              historicalPoints += pt
+            }
           }
         }
+        ats = ats.filter(_.it.hasNext)
+      } else {
+        ats = Nil
       }
-      ats = ats.filter(_.it.hasNext)
     }
 
     // Send known historical data.

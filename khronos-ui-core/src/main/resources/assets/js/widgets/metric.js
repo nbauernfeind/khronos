@@ -77,13 +77,26 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
         cancelSubscription();
 
         if ($scope.widget.config.tags.length > 0) {
+            $scope.loading = true;
+            var startTm = $scope.startTm.getTime() / 1000; // Seconds since Epoch.
+            var range = $scope.storage.timeRange.dt * 60; // Number of Seconds to watch.
+            var endTm = startTm + range;
+
             $scope.lastTm += 1; // Tell DyGraph we're loading.
+            $scope.options.dateWindow = [startTm * 1000, endTm * 1000];
 
             // TODO: auto detect agg mode
             var tags = $scope.widget.config.tags.map(function (t) {
                 return t.tag;
             });
-            var params = {type: "metric-subscribe", tags: tags, agg: $scope.widget.config.aggMethod};
+            // TODO: Live vs. Historical w.r.t. timeRange
+            var params = {
+                type: "metric-subscribe",
+                tags: tags,
+                agg: $scope.widget.config.aggMethod,
+                startTm: startTm,
+                timeRange: range
+            };
             cancelSubscription = WebSocket.sendRecurringRequest($scope, params, function (r) {
                 handleMR(r);
             });
@@ -91,6 +104,8 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     };
     $scope.$watchCollection('widget.config.tags', updateSubscription);
     $scope.$watch('widget.config.aggMethod', updateSubscription);
+    $scope.$watch('startTm', updateSubscription);
+    $scope.$watch('storage.timeRange', updateSubscription);
 
     var onWidgetSizeChangeTO = null;
     var onWidgetSizeChange = function () {
@@ -137,7 +152,8 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     }
 
     function handleValueMR(r) {
-       var numPoints = r.data.length;
+        $scope.loading = false;
+        var numPoints = r.data.length;
         for (var i = 0; i < numPoints; ++i) {
             if (r.data[i].length > $scope.options.labels.length + 1) {
                 return handleNotificationMR({
