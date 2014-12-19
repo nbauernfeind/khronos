@@ -18,9 +18,9 @@ class InMemoryStorage(len: Int) {
   }
 
   def read(fromTime: Time): Iterator[TimeSeriesPoint] = read(fromTime, None)
-  def read(fromTime: Time, toTm: Time): Iterator[TimeSeriesPoint] = read(fromTime, Some(toTm))
+  def read(fromTime: Time, endTm: Time): Iterator[TimeSeriesPoint] = read(fromTime, Some(endTm))
 
-  private[this] def read(fromTm: Time, toTm: Option[Time]): Iterator[TimeSeriesPoint] = this.synchronized {
+  def read(fromTm: Time, endTm: Option[Time]): Iterator[TimeSeriesPoint] = this.synchronized {
     new Iterator[TimeSeriesPoint] {
       private[this] var current: Option[TimeSeriesPoint] = None
       private[this] var nextIdx: Long = 0
@@ -54,6 +54,10 @@ class InMemoryStorage(len: Int) {
             current = None
           }
         } while (current.isDefined && current.get.tm < fromTm)
+
+        if (endTm.isDefined && current.isDefined && current.get.tm >= endTm.get) {
+          current = None
+        }
 
         current.isDefined
       }

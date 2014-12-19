@@ -13,8 +13,8 @@ class InMemoryTimeSeriesDatabaseDAO @Inject()(config: InMemoryTSDBConfiguration)
     getTimeSeries(id, createIfMissing = true).foreach(_.write(tm, value))
   }
 
-  def read(id: Int, fromTm: Time): Iterator[TimeSeriesPoint] = {
-    getTimeSeries(id, createIfMissing = false).iterator.flatMap(_.read(fromTm))
+  def read(id: Int, fromTm: Time, toTm: Option[Time] = None): Iterator[TimeSeriesPoint] = {
+    getTimeSeries(id, createIfMissing = false).iterator.flatMap(_.read(fromTm, toTm))
   }
 
   private[this] def getTimeSeries(id: Int, createIfMissing: Boolean): Option[InMemoryStorage] = {

@@ -1,3 +1,10 @@
 package com.nefariouszhen.khronos.db
 
-case class MetricsPayload (tags: Seq[Seq[String]], values: Seq[Seq[Double]])
+import com.fasterxml.jackson.annotation.JsonProperty
+
+class MetricsPayload(
+  @JsonProperty
+  val tags: Array[Array[String]],
+  @JsonProperty
+  val values: Array[Array[Double]]
+)

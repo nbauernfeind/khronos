@@ -157,12 +157,13 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
           for (id <- active.iterator) {
             // TODO: not thread safe
             // TODO: race condition between historical data and new-writes
-            entryPoints.getOrElseUpdate(id, new ListenerSet(id)).add(subscription.onWrite(aggId))
+            // TODO: re-enable live mode...
+            // entryPoints.getOrElseUpdate(id, new ListenerSet(id)).add(subscription.onWrite(aggId))
           }
           callback(MetricHeader(aggId, line.v, lineTags.map(tag => tag.k -> tag.v).toMap))
 
           for (id <- active.iterator) {
-            tsBuffer += TS(aggId, id, new PeekIterator(dao.read(id, startTm)))
+            tsBuffer += TS(aggId, id, new PeekIterator(dao.read(id, startTm, Some(endTm))))
           }
         }
       }
@@ -194,6 +195,11 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
       } else {
         ats = Nil
       }
+    }
+
+    // TODO: only if not Live, then send the last data point.
+    for (pt <- subscription.flushHistorical) {
+      historicalPoints += pt
     }
 
     // Send known historical data.
@@ -258,6 +264,14 @@ class Multiplexus @Inject()(idMap: TimeSeriesMappingDAO, dao: TimeSeriesDatabase
       }
       lastTm = tsp.tm
       lines(gid).update(id, tsp)
+      ret
+    }
+
+    def flushHistorical: Option[Seq[Double]] = {
+      var ret: Option[Seq[Double]] = None
+      if (lastTm != Time(0)) {
+        ret = Some(lines.map(_.evaluate(lastTm)))
+      }
       ret
     }
   }

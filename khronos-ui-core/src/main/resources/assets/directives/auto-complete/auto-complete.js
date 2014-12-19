@@ -29,6 +29,7 @@
  *                                           the suggestion list is shown.
  */
 khronosApp.directive('autoCompleteKhronos', function($document, $timeout, $sce, $q, tagsInputConfig) {
+    // Mod: start common hidden in Library
     var KEYS = {
         backspace: 8,
         tab: 9,
@@ -82,6 +83,7 @@ khronosApp.directive('autoCompleteKhronos', function($document, $timeout, $sce, 
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
     }
+    // Mod: end common.
 
     function SuggestionList(loadFn, options) {
         var self = {}, debouncedLoadId, getDifference, lastPromise;
@@ -199,6 +201,7 @@ khronosApp.directive('autoCompleteKhronos', function($document, $timeout, $sce, 
                 return value && value.length >= options.minLength || !value && options.loadOnEmpty;
             };
 
+            // Mod: Original suggestion format method.
             defaultHighlight = function(item, query) {
                 console.log(item);
                 var text = getDisplayText(item.$item);
@@ -230,6 +233,7 @@ khronosApp.directive('autoCompleteKhronos', function($document, $timeout, $sce, 
             };
 
             scope.highlight = function(item) {
+                // Mod: format suggestions.
                 var html = scope.formatSuggestion({$item: item, $query: suggestionList.query});
                 if (html === undefined) {
                     html = defaultHighlight({$item: item, $query: suggestionList.query});
@@ -259,20 +263,8 @@ khronosApp.directive('autoCompleteKhronos', function($document, $timeout, $sce, 
                         suggestionList.load(value, tagsInput.getTags());
                     }
                 })
-                .on('input-keydown', function(e) {
-                    // This hack is needed because jqLite doesn't implement stopImmediatePropagation properly.
-                    // I've sent a PR to Angular addressing this issue and hopefully it'll be fixed soon.
-                    // https://github.com/angular/angular.js/pull/4833
-                    var immediatePropagationStopped = false;
-                    e.stopImmediatePropagation = function() {
-                        immediatePropagationStopped = true;
-                        e.stopPropagation();
-                    };
-                    e.isImmediatePropagationStopped = function() {
-                        return immediatePropagationStopped;
-                    };
-
-                    var key = e.keyCode,
+                .on('input-keydown', function(event) {
+                    var key = event.keyCode,
                         handled = false;
 
                     if (hotkeys.indexOf(key) === -1) {
@@ -305,9 +297,9 @@ khronosApp.directive('autoCompleteKhronos', function($document, $timeout, $sce, 
                     }
 
                     if (handled) {
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                        scope.$apply();
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        return false;
                     }
                 });
         }

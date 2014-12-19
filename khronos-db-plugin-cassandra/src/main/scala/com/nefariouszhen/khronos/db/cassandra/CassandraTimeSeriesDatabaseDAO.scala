@@ -8,5 +8,5 @@ class CassandraTimeSeriesDatabaseDAO extends TimeSeriesDatabaseDAO {
 
   override def write(id: Int, tm: Time, value: Double): Unit = ???
 
-  override def read(id: Int, fromTm: Time): Iterator[TimeSeriesPoint] = ???
+  override def read(id: Int, fromTm: Time, toTm: Option[Time] = None): Iterator[TimeSeriesPoint] = ???
 }

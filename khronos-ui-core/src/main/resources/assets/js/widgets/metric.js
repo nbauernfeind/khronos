@@ -17,20 +17,25 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
 
     $scope.data = [];
 
+    $scope.hello = "Hello World";
+
     function resetWidgetTransients() {
         while ($scope.data.length > 0) {
             $scope.data.pop();
         }
         $scope.options = {
             labels: ['tm'],
+            colors: [],
             labelsKMB: true,
             highlightCircleSize: 2,
             highlightSeriesOpts: {
-                highlightCircleSize: 3
+                highlightCircleSize: 3,
+                strokeWidth: 2
             }
         };
         $scope.notifications = [];
         $scope.lastTm = 0;
+        $scope.pallette = d3.scale.category20c();
     }
 
     resetWidgetTransients();
@@ -149,6 +154,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
             $scope.options.labels.push($scope.options.labels.length.toString);
         }
         $scope.options.labels[r.id] = r.label;
+        $scope.options.colors[r.id - 1] = chroma($scope.pallette(r.id)).darken().hex();
     }
 
     function handleValueMR(r) {

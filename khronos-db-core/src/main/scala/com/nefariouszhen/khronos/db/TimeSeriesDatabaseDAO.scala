@@ -19,7 +19,8 @@ trait TimeSeriesDatabaseDAO {
    *
    * @param id     The id of the time series.
    * @param fromTm The earliest data point to retrieve.
+   * @param endTm  Optional parameter of when to stop reading.
    * @return       An iterator of data points.
    */
-  def read(id: Int, fromTm: Time): Iterator[TimeSeriesPoint]
+  def read(id: Int, fromTm: Time, endTm: Option[Time] = None): Iterator[TimeSeriesPoint]
 }
