@@ -7,6 +7,9 @@ import io.dropwizard.setup.Environment
 class UiModule extends DropwizardPrivateModule {
   def doConfigure(): Unit = {
     bind[HomeWidgetResource].asEagerSingleton()
+    bind[WidgetRegistry].asEagerSingleton()
+
+    expose[WidgetRegistry]
   }
 
   def install(env: Environment): Unit = {
