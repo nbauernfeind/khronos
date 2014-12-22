@@ -11,13 +11,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     initConfig('tags', []);
     initConfig('aggMethod', 'sum');
 
-    // Temporarily fix broken storages.
-    delete $scope.widget['data'];
-    delete $scope.widget['options'];
-
     $scope.data = [];
-
-    $scope.hello = "Hello World";
 
     function resetWidgetTransients() {
         while ($scope.data.length > 0) {
@@ -87,7 +81,6 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
             var range = $scope.storage.timeRange.dt * 60; // Number of Seconds to watch.
             var endTm = startTm + range;
 
-            $scope.lastTm += 1; // Tell DyGraph we're loading.
             $scope.options.dateWindow = [startTm * 1000, endTm * 1000];
 
             // TODO: auto detect agg mode
@@ -165,12 +158,6 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
                 return handleNotificationMR({
                     type: "error",
                     what: "have not received a header for timeseries #" + r.data[i].length
-                });
-            }
-            if (r.data[i] === null) {
-                handleNotificationMR({
-                    type: "error",
-                    what: "happened on line #" + i
                 });
             }
             r.data[i][0] = new Date(r.data[i][0] * 1000);
