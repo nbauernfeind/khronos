@@ -31,7 +31,9 @@ khronosApp.filter('asHumanFriendlyNumber', function () {
 khronosApp.factory('Widgets', ['$resource',
     function ($resource) {
         return $resource('/1/ui/widgets/:path', {}, {
-            all: {method: 'GET', params: {path: 'all'}, isArray: true}
+            all: {method: 'GET', params: {path: 'all'}, isArray: true},
+            css: {method: 'GET', params: {path: 'css'}, isArray: true},
+            js: {method: 'GET', params: {path: 'js'}, isArray: true}
         });
     }
 ]);
@@ -41,10 +43,29 @@ khronosApp.controller('KhronosCtrl', ['$scope', 'Widgets', function ($scope, Wid
     $scope.global = {};
 
     $scope.allWidgets = Widgets.all({});
+    $scope.additionalCSS = Widgets.css({});
+    $scope.additionalJavascript = Widgets.js({});
+    $scope.loadedJS = {};
 
     $scope.deepCopy = function (dupe) {
         return $.extend(true, {}, dupe);
-    }
+    };
+
+    $scope.$watch('additionalJavascript', function() {
+        for (var i = 0; i < $scope.additionalJavascript.length; ++i) {
+            if ($scope.additionalJavascript.hasOwnProperty(i)) {
+                var file = $scope.additionalJavascript[i];
+                if (!$scope.loadedJS.hasOwnProperty(file)) {
+                    console.log("Loading extension: " + file);
+                    $scope.loadedJS[file] = true;
+                    var ref = document.createElement('script');
+                    ref.setAttribute("type", "text/javascript");
+                    ref.setAttribute("src", file);
+                    document.getElementsByTagName("head")[0].appendChild(ref);
+                }
+            }
+        }
+    }, true);
 }]);
 
 khronosApp.controller('StatusTabCtrl', ['$scope', 'Widgets', function ($scope, Widgets) {

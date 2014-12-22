@@ -10,9 +10,10 @@ import io.dropwizard.setup.Environment
 
 import scala.collection.mutable
 
-class UtilModule(mapper: ObjectMapper) extends DropwizardPublicModule {
+class UtilModule(mapper: ObjectMapper, extensions: Seq[KhronosExtensionConfiguration]) extends DropwizardPublicModule {
   override def doConfigure(): Unit = {
     bind[ObjectMapper].toInstance(mapper)
+    bind[Seq[KhronosExtensionConfiguration]].toInstance(extensions)
   }
 
   override def install(env: Environment): Unit = {
@@ -32,7 +33,7 @@ object KhronosApplication extends KhronosApplicationBase[KhronosConfiguration] {
       configuration.db.buildModule(),
       new UiModule,
       new WebSocketModule,
-      new UtilModule(environment.getObjectMapper)
+      new UtilModule(environment.getObjectMapper, configuration.extensions)
     )
 
     modules ++= configuration.extensions.map(_.buildModule())

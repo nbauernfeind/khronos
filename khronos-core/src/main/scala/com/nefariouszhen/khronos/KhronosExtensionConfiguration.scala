@@ -7,5 +7,7 @@ import io.dropwizard.jackson.Discoverable
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = As.PROPERTY, property = "type")
 trait KhronosExtensionConfiguration extends Discoverable {
+  val additionalCSS: Seq[String] = Seq()
+  val additionalJavascript: Seq[String] = Seq()
   def buildModule(): DropwizardModule[_]
 }
