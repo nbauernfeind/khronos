@@ -3,6 +3,57 @@
 var khronosApp = angular.module('khronos', ['ngRoute', 'ngResource', 'ngSanitize', 'mgcrea.ngStrap', 'ngTagsInput',
     'angular-dygraphs', 'angular-displaymode', 'ngStorage', 'ui.bootstrap.datetimepicker']);
 
+// After the AngularJS has been bootstrapped, you can no longer
+// use the normal module methods (ex, app.controller) to add
+// components to the dependency-injection container. Instead,
+// you have to use the relevant providers. Since those are only
+// available during the config() method at initialization time,
+// we have to keep a reference to them.
+// --
+// NOTE: This general idea is based on excellent article by
+// Ifeanyi Isitor: http://ify.io/lazy-loading-in-angularjs/
+khronosApp.config(
+    function( $controllerProvider, $provide, $compileProvider ) {
+
+        // Since the "shorthand" methods for component
+        // definitions are no longer valid, we can just
+        // override them to use the providers for post-
+        // bootstrap loading.
+
+        // Let's keep the older references.
+        khronosApp._controller = khronosApp.controller;
+        khronosApp._service = khronosApp.service;
+        khronosApp._factory = khronosApp.factory;
+        khronosApp._value = khronosApp.value;
+        khronosApp._directive = khronosApp.directive;
+
+        khronosApp.controller = function( name, constructor ) {
+            $controllerProvider.register( name, constructor );
+            return( this );
+        };
+
+        khronosApp.service = function( name, constructor ) {
+            $provide.service( name, constructor );
+            return( this );
+        };
+
+        khronosApp.factory = function( name, factory ) {
+            $provide.factory( name, factory );
+            return( this );
+        };
+
+        khronosApp.value = function( name, value ) {
+            $provide.value( name, value );
+            return( this );
+        };
+
+        khronosApp.directive = function( name, factory ) {
+            $compileProvider.directive( name, factory );
+            return( this );
+        };
+    }
+);
+
 khronosApp.config(['$routeProvider',
     function ($routeProvider) {
         $routeProvider.
@@ -45,6 +96,7 @@ khronosApp.controller('KhronosCtrl', ['$scope', 'Widgets', function ($scope, Wid
     $scope.allWidgets = Widgets.all({});
     $scope.additionalCSS = Widgets.css({});
     $scope.additionalJavascript = Widgets.js({});
+    $scope.pendingLoads = 1;
     $scope.loadedJS = {};
 
     $scope.deepCopy = function (dupe) {
@@ -52,16 +104,28 @@ khronosApp.controller('KhronosCtrl', ['$scope', 'Widgets', function ($scope, Wid
     };
 
     $scope.$watch('additionalJavascript', function() {
+        if ($scope.additionalJavascript.$resolved) {
+            $scope.pendingLoads -= 1;
+        }
         for (var i = 0; i < $scope.additionalJavascript.length; ++i) {
             if ($scope.additionalJavascript.hasOwnProperty(i)) {
                 var file = $scope.additionalJavascript[i];
                 if (!$scope.loadedJS.hasOwnProperty(file)) {
                     console.log("Loading extension: " + file);
+                    $scope.pendingLoads += 1;
                     $scope.loadedJS[file] = true;
-                    var ref = document.createElement('script');
-                    ref.setAttribute("type", "text/javascript");
-                    ref.setAttribute("src", file);
-                    document.getElementsByTagName("head")[0].appendChild(ref);
+
+                    var options = {
+                        dataType: 'script',
+                        cache: true,
+                        url: file
+                    };
+
+                    $.ajax(options).then(function() {
+                        $scope.$apply(function() {
+                            $scope.pendingLoads -= 1;
+                        });
+                    });
                 }
             }
         }

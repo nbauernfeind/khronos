@@ -1,6 +1,6 @@
 'use strict';
 
-khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function ($q, $scope, WebSocket) {
+khronosApp.controller('MetricWidgetCfgCtrl', ['$q', '$scope', 'WebSocket', function ($q, $scope, WebSocket) {
     function initConfig(name, def) {
         if ($scope.widget.config[name] === undefined) {
             $scope.widget.config[name] = def;
