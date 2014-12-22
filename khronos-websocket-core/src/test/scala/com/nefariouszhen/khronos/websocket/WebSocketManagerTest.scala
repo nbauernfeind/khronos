@@ -1,11 +1,13 @@
 package com.nefariouszhen.khronos.ui.websocket
 
 import java.io.Closeable
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.inject.{Guice, Provides, Singleton}
 import com.nefariouszhen.khronos.util.AssistedFactoryPublicModule
 import com.nefariouszhen.khronos.websocket.{WebSocketWriter, WebSocketState, WebSocketRequest, WebSocketManager}
@@ -41,6 +43,7 @@ class WebSocketManagerTest extends Matchers {
       override def configure(): Unit = {
         bind[WebSocketManager].asEagerSingleton()
         bindFactory[WebSocketState, WebSocketState.Factory]()
+        bind[ExecutorService].toInstance(MoreExecutors.sameThreadExecutor())
       }
 
       @Provides

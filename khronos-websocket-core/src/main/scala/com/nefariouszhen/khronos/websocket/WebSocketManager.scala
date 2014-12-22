@@ -1,6 +1,7 @@
 package com.nefariouszhen.khronos.websocket
 
 import java.io.Closeable
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As
@@ -76,7 +77,7 @@ class WebSocketState @Inject()(@Assisted r: AtmosphereResource, mapper: ObjectMa
   }
 
   def newWriter(r: WebSocketRequest): WebSocketWriter = {
-    closeables.put(r.callbackId, mutable.ArrayBuffer[Closeable]())
+    closeables.put(r.callbackId, mutable.ArrayBuffer[Closeable]()).foreach(_.foreach(_.close))
     new WebSocketWriter(this, r.callbackId, r.recurring)
   }
 }
@@ -110,14 +111,13 @@ class WebSocketWriter(private[websocket] val socket: WebSocketState, cid: Int, r
     classOf[HeartbeatInterceptor]
   )
 )
-class WebSocketManager @Inject()(mapper: ObjectMapper, factory: WebSocketState.Factory)
+class WebSocketManager @Inject()(mapper: ObjectMapper, factory: WebSocketState.Factory, pool: ExecutorService)
   extends WebSocketHandlerAdapter {
   type Callback[T] = Function2[WebSocketWriter, T, Unit]
 
   private[this] val LOG = LoggerFactory.getLogger(this.getClass)
   private[this] val callbackMap = mutable.HashMap[Class[_], Callback[_]]()
   private[this] val uuidToState = mutable.HashMap[String, WebSocketState]()
-  private[this] val pool = Executors.newCachedThreadPool("websocket")
 
   // A cancel request is just a special callback.
   registerCallback[CancelRequest](cancelRequest)

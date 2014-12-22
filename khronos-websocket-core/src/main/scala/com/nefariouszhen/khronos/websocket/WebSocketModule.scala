@@ -1,7 +1,9 @@
 package com.nefariouszhen.khronos.websocket
 
+import java.util.concurrent.ExecutorService
+
 import com.google.inject.{Provides, Singleton}
-import com.nefariouszhen.khronos.util.DropwizardPrivateModule
+import com.nefariouszhen.khronos.util.{ManagedExecutor, Executors, DropwizardPrivateModule}
 import io.dropwizard.setup.Environment
 import org.atmosphere.cpr.{ApplicationConfig, AtmosphereObjectFactory, AtmosphereServlet, BroadcasterFactory}
 
@@ -9,6 +11,7 @@ class WebSocketModule extends DropwizardPrivateModule {
   override def doConfigure(): Unit = {
     bind[GuiceObjectFactory].asEagerSingleton()
     bind[AtmosphereObjectFactory].to[GuiceObjectFactory]
+    bind[ExecutorService].toInstance(Executors.newCachedThreadPool("websocket"))
 
     bindFactory[WebSocketState, WebSocketState.Factory]()
     bind[WebSocketManager].asEagerSingleton()
@@ -35,5 +38,7 @@ class WebSocketModule extends DropwizardPrivateModule {
   override def install(env: Environment): Unit = {
     val servletHolder = env.servlets().addServlet("websocket", instance[AtmosphereServlet])
     servletHolder.addMapping("/ws/*")
+
+    env.lifecycle().manage(new ManagedExecutor(instance[ExecutorService]))
   }
 }
