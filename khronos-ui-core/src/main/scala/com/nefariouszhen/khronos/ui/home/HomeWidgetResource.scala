@@ -9,6 +9,7 @@ import com.nefariouszhen.khronos.ui.{Widget, WidgetRegistry}
 
 private class MetricWidget extends Widget[Unit] {
   val partial: String = "partials/widgets/metric.html"
+  val configPartial: String = "partials/widgets/metric.cfg.html"
   val name: String = "Metric"
 }
 
@@ -19,7 +20,7 @@ class HomeWidgetResource @Inject()(registry: WidgetRegistry, extensions: Seq[Khr
 
   @GET
   @Path("/all")
-  def getWidgets: Seq[Widget[_]] = registry.getWidgets
+  def getWidgets: Map[String, Widget[_]] = registry.getWidgets
 
   @GET
   @Path("/css")

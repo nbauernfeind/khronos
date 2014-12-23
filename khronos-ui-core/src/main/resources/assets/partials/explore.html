@@ -37,8 +37,8 @@
                 <i class="fa fa-plus"></i> Add Widget
             </button>
             <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                <li ng-repeat="widget in allWidgets">
-                    <a ng-click="addWidget(widget)">{{widget.name}}</a>
+                <li ng-repeat="(name, widget) in allWidgets">
+                    <a ng-click="addWidget(widget)">{{name}}</a>
                 </li>
             </ul>
         </div>
@@ -72,8 +72,12 @@
                         <label class="control-label">Title: </label>
                         <input type="title" class="form-control" ng-model="widget.title" placeholder="Enter Title">
                     </div>
+                    <div ng-include="widget.configPartial" ></div>
+                    <div class="form-group">
+                        <input class="btn btn-default" type="submit" ng-click="configure(widget)" value="Save & Close">
+                    </div>
                 </form>
-                    <div ng-include="widget.partial" ></div>
+                <div ng-include="widget.partial" ></div>
             </div>
         </div>
     </div>

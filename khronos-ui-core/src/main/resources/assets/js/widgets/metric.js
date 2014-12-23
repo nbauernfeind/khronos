@@ -11,33 +11,6 @@ khronosApp.controller('MetricWidgetCfgCtrl', ['$q', '$scope', 'WebSocket', funct
     initConfig('tags', []);
     initConfig('aggMethod', 'sum');
 
-    $scope.data = [];
-
-    function resetWidgetTransients() {
-        while ($scope.data.length > 0) {
-            $scope.data.pop();
-        }
-        $scope.options = {
-            labels: ['tm'],
-            colors: [],
-            labelsKMB: true,
-            highlightCircleSize: 2,
-            highlightSeriesOpts: {
-                highlightCircleSize: 3,
-                strokeWidth: 2
-            }
-        };
-        $scope.notifications = [];
-        $scope.lastTm = 0;
-        $scope.pallette = d3.scale.category20c();
-    }
-
-    resetWidgetTransients();
-
-    $scope.clearNotification = function (idx) {
-        $scope.notifications.splice(idx, 1);
-    };
-
     $scope.aggregationMethods = ['avg', 'sum', 'max', 'min'];
 
     $scope.fetchSuggestions = function (viewValue) {
@@ -68,12 +41,68 @@ khronosApp.controller('MetricWidgetCfgCtrl', ['$q', '$scope', 'WebSocket', funct
             "</span></span>";
     };
 
-    var cancelSubscription = function () {
+    function replaceAll(str, substr, newSubstr) {
+        if (!substr) {
+            return str;
+        }
+
+        var expression = substr.replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1');
+        return str.replace(new RegExp(expression, 'gi'), newSubstr);
+    }
+
+    function encodeHTML(value) {
+        return value.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+}]);
+
+khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function ($q, $scope, WebSocket) {
+    function emptyFunc() {}
+
+    function initConfig(name, def) {
+        if ($scope.widget.config[name] === undefined) {
+            $scope.widget.config[name] = def;
+        }
+    }
+
+    initConfig('version', 1);
+    initConfig('tags', []);
+    initConfig('aggMethod', 'sum');
+
+    $scope.data = [];
+
+    function resetWidgetTransients() {
+        while ($scope.data.length > 0) {
+            $scope.data.pop();
+        }
+        $scope.options = {
+            labels: ['tm'],
+            colors: [],
+            labelsKMB: true,
+            highlightCircleSize: 2,
+            highlightSeriesOpts: {
+                highlightCircleSize: 3,
+                strokeWidth: 2
+            }
+        };
+        $scope.notifications = [];
+        $scope.lastTm = 0;
+        $scope.pallette = d3.scale.category20c();
+    }
+
+    resetWidgetTransients();
+
+    $scope.clearNotification = function (idx) {
+        $scope.notifications.splice(idx, 1);
     };
+
+    var cancelSubscription = emptyFunc;
 
     var updateSubscription = function () {
         resetWidgetTransients();
         cancelSubscription();
+        cancelSubscription = emptyFunc;
 
         if ($scope.widget.config.tags.length > 0) {
             $scope.loading = true;
@@ -164,20 +193,5 @@ khronosApp.controller('MetricWidgetCfgCtrl', ['$q', '$scope', 'WebSocket', funct
             $scope.data.push(r.data[i]);
         }
         $scope.lastTm += 1;
-    }
-
-    function replaceAll(str, substr, newSubstr) {
-        if (!substr) {
-            return str;
-        }
-
-        var expression = substr.replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1');
-        return str.replace(new RegExp(expression, 'gi'), newSubstr);
-    }
-
-    function encodeHTML(value) {
-        return value.replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
     }
 }]);

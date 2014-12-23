@@ -82,7 +82,7 @@ khronosApp.filter('asHumanFriendlyNumber', function () {
 khronosApp.factory('Widgets', ['$resource',
     function ($resource) {
         return $resource('/1/ui/widgets/:path', {}, {
-            all: {method: 'GET', params: {path: 'all'}, isArray: true},
+            all: {method: 'GET', params: {path: 'all'}},
             css: {method: 'GET', params: {path: 'css'}, isArray: true},
             js: {method: 'GET', params: {path: 'js'}, isArray: true}
         });
@@ -132,7 +132,7 @@ khronosApp.controller('KhronosCtrl', ['$scope', 'Widgets', function ($scope, Wid
     }, true);
 }]);
 
-khronosApp.controller('StatusTabCtrl', ['$scope', 'Widgets', function ($scope, Widgets) {
+khronosApp.controller('StatusTabCtrl', ['$scope', 'Widgets', function ($scope) {
     $scope.global.currTab = "Status";
 }]);
 
@@ -152,7 +152,20 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', '$localStorage', function ($s
         timeRange: $scope.ranges[4],
         myOffset: 0
     });
+
     $scope.widgets = $scope.storage.widgets;
+
+    // Update partials and controller on pre-existing widgets, should they change.
+    $scope.$watch('allWidgets', function() {
+        for (var i = 0; i < $scope.widgets.length; ++i) {
+            if ($scope.widgets.hasOwnProperty(i)) {
+                var widget = $scope.widgets[i];
+                widget.configPartial = $scope.allWidgets[widget.name].configPartial;
+                widget.partial = $scope.allWidgets[widget.name].partial;
+                widget.controller = $scope.allWidgets[widget.name].controller;
+            }
+        }
+    });
 
     $scope.startTm = new Date();
     $scope.startTm.setHours(0, 0, 0, 0);
@@ -234,6 +247,7 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', '$localStorage', function ($s
         return {
             name: widget.name,
             partial: widget.partial,
+            configPartial: widget.configPartial,
             title: "",
             editable: true,
             config: $scope.deepCopy(widget.config || {})

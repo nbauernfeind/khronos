@@ -1,0 +1,27 @@
+<div class="form-group" ng-controller="MetricWidgetCfgCtrl">
+    <label class="control-label">Tags: </label>
+
+    <tags-input class="metric"
+                display-property="tag"
+                ng-model="widget.config.tags"
+                placeholder="Add a tag"
+                min-length="0"
+                add-on-comma="true"
+                add-on-space="true"
+                enable-editing-last-tag="true">
+        <auto-complete-khronos source="fetchSuggestions($query)"
+                               format-suggestion="formatSuggestion($item, $query)"
+                               min-length="0"
+                               load-on-empty="true"
+                               load-on-focus="true"
+                               debounce-delay="0"
+                               max-results="10"></auto-complete-khronos>
+    </tags-input>
+
+    <div>
+        <label class="control-label">Aggregation Method: </label>
+
+        <select class="form-control" ng-model="widget.config.aggMethod"
+                ng-options="m for m in aggregationMethods"></select>
+    </div>
+</div>
