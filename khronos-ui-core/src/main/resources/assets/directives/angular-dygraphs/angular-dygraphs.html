@@ -4,7 +4,7 @@
         <div class="series-container">
             <span ng-repeat="line in series | orderBy:['-visible', linePriority]" class="series">
                 <span>{{line.prioritized()}}</span>
-                <span>{{values[line.index + 1] | number}}</span>
+                <span>{{valueFor(line) | number}}</span>
                 <a ng-click="selectSeries(line.index)">
                     <span class="" ng-style="{color: line.color}" ng-class="{'not-graphed': !line.visible,
                     selected: line.selected && line.visible}" ng-mouseover="mouseOverSeries(line)">
@@ -20,7 +20,7 @@
             <ul>
             <li ng-repeat="line in series | orderBy:['-visible', linePriority, valueFor]" class="series">
                 <span>{{line.prioritized()}}</span>
-                <span>{{values[line.index + 1] | number}}</span>
+                <span>{{valueFor(line) | number}}</span>
                 <a ng-click="selectSeries(line.index)">
                     <span class="" ng-style="{color: line.color}" ng-class="{'not-graphed': !line.visible,
                     selected: line.selected && line.visible}" ng-mouseover="mouseOverSeries(line)">

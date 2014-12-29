@@ -248,7 +248,8 @@
 
                     scope.valueFor = function (line) {
                         if (scope.values !== undefined && scope.values.length > line.index + 1) {
-                            return scope.values[line.index + 1];
+                            var x = scope.values[line.index + 1];
+                            return isNaN(x) ? 0 : x;
                         }
                         return 0;
                     };
