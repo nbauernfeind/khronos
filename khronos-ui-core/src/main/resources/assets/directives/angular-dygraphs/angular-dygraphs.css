@@ -22,6 +22,15 @@
     list-style-type: none;
     padding: 0;
     margin: 0;
+    white-space: nowrap;
+}
+
+.ng-dygraphs .legend-above {
+    margin-bottom: 20px;
+}
+
+.ng-dygraphs .legend-above .series-container {
+    white-space: nowrap;
 }
 
 .ng-dygraphs .not-graphed {

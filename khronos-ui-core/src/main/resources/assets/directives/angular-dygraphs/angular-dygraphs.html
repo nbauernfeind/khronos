@@ -1,11 +1,26 @@
 <div class="ng-dygraphs" ng-show="data.length > 0 || loading">
-    <div class="legend pull-left" ng-show="data.length > 0" ng-mouseleave="mouseLeaveLegend()" ng-mouseover="mouseEnterLegend()">
+    <div class="legend-above" ng-show="data.length > 0 && legendAbove">
+        <div><b>{{formatTm(values[0])}}</b></div>
+        <div class="series-container">
+            <span ng-repeat="line in series | orderBy:['-visible', linePriority]" class="series">
+                <span>{{line.prioritized()}}</span>
+                <span>{{values[line.index + 1] | number}}</span>
+                <a ng-click="selectSeries(line.index)">
+                    <span class="" ng-style="{color: line.color}" ng-class="{'not-graphed': !line.visible,
+                    selected: line.selected && line.visible}" ng-mouseover="mouseOverSeries(line)">
+                        {{line.label}}
+                    </span>
+                </a>
+            </span>
+        </div>
+    </div>
+    <div class="legend pull-left" ng-show="data.length > 0 && !legendAbove" ng-mouseleave="mouseLeaveLegend()" ng-mouseover="mouseEnterLegend()">
         <div class="series-container">
             <div><b>{{formatTm(values[0])}}</b></div>
             <ul>
-            <li ng-repeat="line in series | orderBy:['-visible', linePriority]" class="series">
+            <li ng-repeat="line in series | orderBy:['-visible', linePriority, valueFor]" class="series">
                 <span>{{line.prioritized()}}</span>
-                <span>{{values[line.index + 1]}}</span>
+                <span>{{values[line.index + 1] | number}}</span>
                 <a ng-click="selectSeries(line.index)">
                     <span class="" ng-style="{color: line.color}" ng-class="{'not-graphed': !line.visible,
                     selected: line.selected && line.visible}" ng-mouseover="mouseOverSeries(line)">

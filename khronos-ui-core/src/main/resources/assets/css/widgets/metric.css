@@ -28,7 +28,6 @@
 .metric .tags .tag-item button {
     background: transparent;
     color: #000;
-    /*opacity: .4;*/
 }
 
 .metric .autocomplete {
@@ -69,4 +68,5 @@
     font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
     height: 26px;
     line-height: 25px;
+    white-space: nowrap;
 }

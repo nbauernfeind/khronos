@@ -163,16 +163,18 @@
                     data: '=',
                     options: '=',
                     legend: '=?',
-                    loading: '=', // Are we currently loading data?
-                    lastTm: '='   // When to redraw because of new data.
+                    loading: '=',    // Are we currently loading data?
+                    lastTm: '=',     // When to redraw because of new data.
+                    legendAbove: '=' // Should we put a mini legend above the graph instead of beside?
                 },
                 templateUrl: "directives/angular-dygraphs/angular-dygraphs.html",
                 link: function (scope, element, attrs) {
                     var parent = element.parent();
                     var mainDiv = element.children()[0];
-                    var legendDiv = $(mainDiv).children()[0];
-                    var chartDiv = $(mainDiv).children()[1];
-                    var loadingDiv = $(mainDiv).children()[2];
+                    var legendAboveDiv = $(mainDiv).children()[0];
+                    var legendDiv = $(mainDiv).children()[1];
+                    var chartDiv = $(mainDiv).children()[2];
+                    var loadingDiv = $(mainDiv).children()[3];
 
                     var myId;
                     var colors = [];
@@ -244,6 +246,21 @@
                         return !scope.hovered && !(line.visible && line.selected);
                     };
 
+                    scope.valueFor = function (line) {
+                        if (scope.values !== undefined && scope.values.length > line.index + 1) {
+                            return scope.values[line.index + 1];
+                        }
+                        return 0;
+                    };
+
+                    scope.$watch('legendAbove', function() {
+                        options.showRangeSelector = !scope.legendAbove;
+                        if (graph !== undefined && options.file !== undefined && options.file.length > 0) {
+                            graph.updateOptions(options);
+                            resize();
+                        }
+                    });
+
                     scope.$watchCollection('options', function () {
                         for (var opt in scope.options) {
                             if (scope.options.hasOwnProperty(opt)) {
@@ -252,7 +269,7 @@
                         }
                         options.colors = colors;
                         options.file = scope.data;
-                        options.showRangeSelector = true;
+                        //options.showRangeSelector = true;
                         options.labelsDivWidth = 0;
 
                         if (graph === undefined && options.file.length > 0) {
@@ -338,8 +355,8 @@
 
                     function resize() {
                         var legendWidth = 140;
-                        var width = $(parent).width() - legendWidth;
-                        var height = ($(parent).width() - 20) / (2 * 1.618);
+                        var width = $(parent).width() - (scope.legendAbove ? 0 : legendWidth);
+                        var height = ($(parent).width() - 20) / (2 * 1.618) + 50;
 
                         legendDiv.setAttribute('style', 'height:' + height + 'px');
                         loadingDiv.width = width;

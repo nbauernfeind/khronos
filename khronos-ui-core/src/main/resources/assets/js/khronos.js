@@ -74,8 +74,9 @@ khronosApp.config(['$routeProvider',
 khronosApp.filter('asHumanFriendlyNumber', function () {
     return function (num) {
         if (num < 1000) return num;
-        var r = Math.ceil(Math.log(num) / Math.LN10) % 3;
-        return numeral(num).format(r == 0 ? "0a" : r == 1 ? "0.00a" : "0.0a");
+        var d = Math.ceil(Math.log(num) / Math.LN10) % 3;
+        var r = d / 3;
+        return numeral(num).format(r == 0 ? "0.a" : r == 1 ? "0.00a" : "0.0a");
     };
 });
 

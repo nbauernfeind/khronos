@@ -1,14 +1,15 @@
 <div class="metric" ng-controller="MetricWidgetCtrl">
     <div ng-if="!widget.editable" class="tags-disp">
         <div ng-if="widget.config.tags.length == 0" class="form-text"><span>No Tags Specified</span></div>
-        <ul class="tag-list">
+        <ul class="tag-list" ng-show="storage.currSize != 'S'">
             <li class="tag-item" ng-repeat="tag in widget.config.tags | orderBy:'tag'">
                 <span><i class="fa fa-tag"></i> {{tag.tag}}</span>
             </li>
         </ul>
     </div>
     <div>
-        <ng-dygraphs options="options" legend="legend" data="data" last-tm="lastTm" loading="loading"></ng-dygraphs>
+        <ng-dygraphs options="options" legend="legend" data="data" last-tm="lastTm" loading="loading"
+                     legend-above="storage.currSize == 'S' || storage.currSize == 'M'"></ng-dygraphs>
         <div ng-if="notifications.length">
             <hr/>
             <div class="alert alert-dismissible" role="alert"
