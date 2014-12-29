@@ -10,6 +10,18 @@
     border: 1px solid #d0d0d0;
     padding: 0 5px 0 5px;
     width: 138px;
+    font-size: 12px;
+    overflow-y: auto;
+}
+
+.ng-dygraphs .legend ul li:hover {
+    overflow-x: visible;
+}
+
+.ng-dygraphs .legend ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
 }
 
 .ng-dygraphs .not-graphed {
@@ -23,4 +35,7 @@
 
 .ng-dygraphs .selected {
     font-weight: bold;
+}
+
+.ng-dygraphs .series {
 }

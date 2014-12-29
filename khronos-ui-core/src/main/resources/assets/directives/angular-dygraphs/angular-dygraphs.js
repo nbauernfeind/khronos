@@ -320,9 +320,12 @@
 
                     scope.mouseOverSeries = function (series) {
                         if (graph !== undefined && !cfg.seriesLocked) {
-                            scope.hovered = true;
                             highlightCallback({}, cfg.highlightTm, [], [], series.label);
                         }
+                    };
+
+                    scope.mouseEnterLegend = function () {
+                        scope.hovered = true;
                     };
 
                     scope.mouseLeaveLegend = function () {
