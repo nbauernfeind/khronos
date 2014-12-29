@@ -30,10 +30,12 @@
         '#d9d9d9'
     ];
 
+    var blockDraw = false;
     var rezoom = function (xAxisRange, isReset) {
         if (isReset === undefined) {
             isReset = false;
         }
+        blockDraw = true;
 
         for (id in allGraphs) {
             if (allGraphs.hasOwnProperty(id)) {
@@ -46,14 +48,15 @@
                 g.highlight();
             }
         }
+
+        blockDraw = false;
     };
 
     var drawCallback = (function () {
         var currRange;
-        var block = false;
         return function (me, initial) {
-            if (block) return;
-            block = true;
+            if (blockDraw) return;
+            blockDraw = true;
 
             var opts = {
                 dateWindow: me.xAxisRange()
@@ -81,7 +84,7 @@
                 }
             }
 
-            block = false
+            blockDraw = false
         };
     })();
 
