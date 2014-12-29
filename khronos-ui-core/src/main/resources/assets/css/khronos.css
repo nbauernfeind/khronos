@@ -25,6 +25,7 @@
 body {
     padding-top: 50px;
     background: #f9f9f9;
+    overflow-y: scroll;
 }
 
 .jumbotron {
@@ -146,4 +147,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.notification {
+    white-space: pre-wrap;
 }

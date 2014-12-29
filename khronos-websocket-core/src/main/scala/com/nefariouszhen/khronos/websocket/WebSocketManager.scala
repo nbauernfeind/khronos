@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.{JsonMappingException, ObjectMapper}
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
-import com.nefariouszhen.khronos.util.Executors
 import io.dropwizard.jackson.Discoverable
 import org.atmosphere.client.TrackMessageSizeInterceptor
 import org.atmosphere.config.service.WebSocketHandlerService

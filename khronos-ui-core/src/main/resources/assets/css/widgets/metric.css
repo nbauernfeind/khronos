@@ -70,17 +70,3 @@
     height: 26px;
     line-height: 25px;
 }
-
-.metric .ng-dygraphs {
-    margin-top: 20px;
-    padding-top: 20px;
-    margin-right: 20px;
-    border-top: 1px solid #eeeeee;
-    overflow: hidden;
-}
-
-.metric .dygraph-legend > span.highlight { border: 2px solid red; }
-.metric .dygraph-legend {
-    left: 100px !important;
-    top: 5px !important;
-}

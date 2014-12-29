@@ -58,6 +58,8 @@ khronosApp.controller('MetricWidgetCfgCtrl', ['$q', '$scope', 'WebSocket', funct
 }]);
 
 khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function ($q, $scope, WebSocket) {
+
+
     function emptyFunc() {}
 
     function initConfig(name, def) {
@@ -78,7 +80,6 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
         }
         $scope.options = {
             labels: ['tm'],
-            colors: [],
             labelsKMB: true,
             highlightCircleSize: 2,
             highlightSeriesOpts: {
@@ -88,7 +89,6 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
         };
         $scope.notifications = [];
         $scope.lastTm = 0;
-        $scope.pallette = d3.scale.category20c();
     }
 
     resetWidgetTransients();
@@ -176,7 +176,7 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
             $scope.options.labels.push($scope.options.labels.length.toString);
         }
         $scope.options.labels[r.id] = r.label;
-        $scope.options.colors[r.id - 1] = chroma($scope.pallette(r.id)).darken().hex();
+
     }
 
     function handleValueMR(r) {

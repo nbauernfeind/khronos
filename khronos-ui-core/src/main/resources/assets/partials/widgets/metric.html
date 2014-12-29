@@ -9,9 +9,6 @@
     </div>
     <div>
         <ng-dygraphs options="options" legend="legend" data="data" last-tm="lastTm" loading="loading"></ng-dygraphs>
-        <hr/>
-        <div>Debug: NumPoints {{data.length}} x {{options.labels.length - 1}}</div>
-        <!--<div ng-repeat="pt in data | limitTo: -5">{{pt}}</div>-->
         <div ng-if="notifications.length">
             <hr/>
             <div class="alert alert-dismissible" role="alert"
@@ -25,7 +22,7 @@
                     <b ng-switch-when="error">Error: </b>
                     <b ng-switch-when="warn">Warning: </b>
                 </b>
-                {{notification.what}}
+                <div class="notification">{{notification.what}}</div>
             </div>
         </div>
     </div>

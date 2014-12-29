@@ -1,15 +1,19 @@
-<div class="ng-dygraphs" ng-show="lastTm > 0">
-    <div class="graph" ng-show="data.length > 0 && !loading"></div>
-    <div class="loading mega-center" ng-show="loading"><i class="fa fa-spinner fa-spin fa-4x"></i></div>
-    <div class="legend" ng-if="LegendEnabled">
+<div class="ng-dygraphs" ng-show="data.length > 0 || loading">
+    <div class="legend pull-left" ng-show="data.length > 0" ng-mouseleave="mouseLeaveLegend()">
         <div class="series-container">
-            <div ng-repeat="series in legendSeries" class="series">
-                <a ng-click="selectSeries(series)">
-                    <span ng-bind-html="seriesLine(series)"></span>
-                    <span ng-style="seriesStyle(series)">{{series.label}}</span>
+            <div><span>{{formatTm(values[0])}}</span></div>
+            <div ng-repeat="line in series | orderBy:['-visible', linePriority]" class="series">
+                <span>{{line.prioritized()}}</span>
+                <span>{{values[line.index + 1]}}</span>
+                <a ng-click="selectSeries(line.index)">
+                    <span class="pull-right" ng-style="{color: line.color}" ng-class="{'not-graphed': !line.visible,
+                    selected: line.selected && line.visible}" ng-mouseover="mouseOverSeries(line)">
+                        {{line.label}}
+                    </span>
                 </a>
             </div>
         </div>
     </div>
-    <div class="dypopover"></div>
+    <div class="graph pull-right" ng-show="data.length > 0 && !loading"></div>
+    <div class="loading mega-center" ng-show="loading"><i class="fa fa-spinner fa-spin fa-4x"></i></div>
 </div>
