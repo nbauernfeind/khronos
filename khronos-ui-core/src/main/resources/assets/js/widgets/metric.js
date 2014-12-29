@@ -99,7 +99,11 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
 
     var cancelSubscription = emptyFunc;
 
-    var updateSubscription = function () {
+    var updateSubscription = function (newValue, oldValue) {
+        if (newValue !== undefined && oldValue !== undefined && newValue === oldValue) {
+            return;
+        }
+
         resetWidgetTransients();
         cancelSubscription();
         cancelSubscription = emptyFunc;
@@ -133,6 +137,8 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
     $scope.$watch('widget.config.aggMethod', updateSubscription);
     $scope.$watch('startTm', updateSubscription);
     $scope.$watch('storage.timeRange', updateSubscription);
+
+    updateSubscription();
 
     var onWidgetSizeChangeTO = null;
     var onWidgetSizeChange = function () {
