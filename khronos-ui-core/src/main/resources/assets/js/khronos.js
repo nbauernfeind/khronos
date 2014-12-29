@@ -156,18 +156,6 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', '$localStorage', function ($s
 
     $scope.widgets = $scope.storage.widgets;
 
-    // Update partials and controller on pre-existing widgets, should they change.
-    $scope.$watch('allWidgets', function() {
-        for (var i = 0; i < $scope.widgets.length; ++i) {
-            if ($scope.widgets.hasOwnProperty(i)) {
-                var widget = $scope.widgets[i];
-                widget.configPartial = $scope.allWidgets[widget.name].configPartial;
-                widget.partial = $scope.allWidgets[widget.name].partial;
-                widget.controller = $scope.allWidgets[widget.name].controller;
-            }
-        }
-    });
-
     $scope.startTm = new Date();
     $scope.startTm.setHours(0, 0, 0, 0);
     $scope.startTm = new Date($scope.startTm.getTime() + $scope.storage.myOffset);
@@ -202,7 +190,6 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', '$localStorage', function ($s
         // Todo: Deep copy config from widget.
         $scope.widgets.push({
             name: widget.name,
-            partial: widget.partial,
             title: widget.title,
             editable: false,
             config: $scope.deepCopy(widget.config)
@@ -247,8 +234,6 @@ khronosApp.controller('ExploreTabCtrl', ['$scope', '$localStorage', function ($s
         // Todo: Clone config defaults in widget.
         return {
             name: widget.name,
-            partial: widget.partial,
-            configPartial: widget.configPartial,
             title: "",
             editable: true,
             config: $scope.deepCopy(widget.config || {})

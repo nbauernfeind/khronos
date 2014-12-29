@@ -269,7 +269,6 @@
                         }
                         options.colors = colors;
                         options.file = scope.data;
-                        //options.showRangeSelector = true;
                         options.labelsDivWidth = 0;
 
                         if (graph === undefined && options.file.length > 0) {

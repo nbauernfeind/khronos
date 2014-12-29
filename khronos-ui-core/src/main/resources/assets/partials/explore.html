@@ -72,12 +72,12 @@
                         <label class="control-label">Title: </label>
                         <input type="title" class="form-control" ng-model="widget.title" placeholder="Enter Title">
                     </div>
-                    <div ng-include="widget.configPartial" ></div>
+                    <div ng-include="allWidgets[widget.name].configPartial" ></div>
                     <div class="form-group">
                         <input class="btn btn-default" type="submit" ng-click="configure(widget)" value="Save & Close">
                     </div>
                 </form>
-                <div ng-include="widget.partial" ></div>
+                <div ng-include="allWidgets[widget.name].partial" ></div>
             </div>
         </div>
     </div>
