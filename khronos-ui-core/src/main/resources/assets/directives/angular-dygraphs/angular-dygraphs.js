@@ -73,7 +73,6 @@
             var range = me.xAxisRange();
 
             if (currTimeRange === undefined || currTimeRange[0] != range[0] || currTimeRange[1] != range[1]) {
-                console.log("Setting time range: " + range);
                 currTimeRange = range;
                 for (id in allGraphs) {
                     if (allGraphs.hasOwnProperty(id) && allGraphs[id].graph != me) {
@@ -338,12 +337,13 @@
                     };
 
                     scope.resetVisibility = function(visible, except) {
+                        var vis = [];
                         for (i = 0; i < scope.series.length; ++i) {
-                            if (i != except) {
-                                scope.series[i].visible = visible;
-                                graph.setVisibility(i, visible);
-                            }
+                            var meVisible = i != except ? visible : !visible;
+                            vis.push(meVisible);
+                            scope.series[i].visible = meVisible;
                         }
+                        graph.updateOptions({visibility: vis});
                     };
 
                     scope.selectSeries = function (idx) {
@@ -404,11 +404,7 @@
                     };
 
                     scope.hideOtherSeries = function (line) {
-                        scope.resetVisibility(false, line);
-                        if (!line.visible) {
-                            line.visible = true;
-                            graph.setVisibility(line.index, true);
-                        }
+                        scope.resetVisibility(false, line.index);
                     };
 
                     resize();

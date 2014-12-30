@@ -83,7 +83,8 @@ khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function
             highlightSeriesOpts: {
                 highlightCircleSize: 3,
                 strokeWidth: 2
-            }
+            },
+            stepPlot: true
         };
         $scope.notifications = [];
         $scope.lastTm = 0;
