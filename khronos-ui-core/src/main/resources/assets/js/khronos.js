@@ -1,7 +1,7 @@
 'use strict';
 
 var khronosApp = angular.module('khronos', ['ngRoute', 'ngResource', 'ngSanitize', 'mgcrea.ngStrap', 'ngTagsInput',
-    'angular-dygraphs', 'angular-displaymode', 'ngStorage', 'ui.bootstrap.datetimepicker']);
+    'angular-dygraphs', 'angular-displaymode', 'ngStorage', 'ui.bootstrap.datetimepicker', 'ng-context-menu']);
 
 // After the AngularJS has been bootstrapped, you can no longer
 // use the normal module methods (ex, app.controller) to add

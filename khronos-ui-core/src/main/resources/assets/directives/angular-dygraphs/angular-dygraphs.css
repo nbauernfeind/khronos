@@ -48,3 +48,7 @@
 
 .ng-dygraphs .series {
 }
+
+.ng-dygraphs .dropdown {
+    z-index: 1000;
+}
