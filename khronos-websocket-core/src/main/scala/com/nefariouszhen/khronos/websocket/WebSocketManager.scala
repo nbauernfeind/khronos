@@ -75,7 +75,7 @@ class WebSocketState @Inject()(@Assisted r: AtmosphereResource, mapper: ObjectMa
     closeables.clear()
   }
 
-  def newWriter(r: WebSocketRequest): WebSocketWriter = {
+  def newWriter(r: WebSocketRequest): WebSocketWriter = this.synchronized {
     closeables.put(r.callbackId, mutable.ArrayBuffer[Closeable]()).foreach(_.foreach(_.close))
     new WebSocketWriter(this, r.callbackId, r.recurring)
   }
