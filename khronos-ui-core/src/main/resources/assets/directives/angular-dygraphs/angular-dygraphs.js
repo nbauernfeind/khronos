@@ -42,7 +42,7 @@
                 var g = allGraphs[id];
                 var opts = {
                     dateWindow: xAxisRange,
-                    valueRange: isReset ? null : g.yAxisRange()
+                    valueRange: isReset ? null : g.graph.yAxisRange()
                 };
                 g.graph.updateOptions(opts);
                 g.highlight();
@@ -52,27 +52,36 @@
         blockDraw = false;
     };
 
+    var currTimeRange;
     var drawCallback = (function () {
-        var currRange;
-        return function (me, initial) {
+        return function (me) {
             if (blockDraw) return;
             blockDraw = true;
 
-            var opts = {
-                dateWindow: me.xAxisRange()
-            };
-            var isReset = !me.isZoomed();
+            // On the initial draw, we haven't had the ability to set the id or put the graph in allGraphs.
+            if (me.myId === undefined || allGraphs[me.myId] === undefined) {
+                if (currTimeRange !== undefined) {
+                    me.updateOptions({
+                        dateWindow: currTimeRange,
+                        valueRange: me.yAxisRange()
+                    });
+                }
+                blockDraw = false;
+                return;
+            }
 
-            if (isReset || currRange === undefined || currRange[0] != opts.dateWindow[0] || currRange[1] != opts.dateWindow[1]) {
-                currRange = opts.dateWindow;
+            var range = me.xAxisRange();
+
+            if (currTimeRange === undefined || currTimeRange[0] != range[0] || currTimeRange[1] != range[1]) {
+                console.log("Setting time range: " + range);
+                currTimeRange = range;
                 for (id in allGraphs) {
                     if (allGraphs.hasOwnProperty(id) && allGraphs[id].graph != me) {
                         var g = allGraphs[id];
-                        var myOpts = $.extend({}, opts);
-                        if (!isReset) {
-                            myOpts.valueRange = g.graph.yAxisRange();
-                        }
-                        g.graph.updateOptions(myOpts);
+                        g.graph.updateOptions({
+                            dateWindow: range,
+                            valueRange: g.graph.yAxisRange()
+                        });
                         allGraphs[id].highlight();
                     }
                 }
@@ -120,24 +129,35 @@
         }
     })();
 
-    var clickCallback = (function () {
-        return function () {
-            blockHighlight = true;
-            var me = this;
-            var mSeries = me.getHighlightSeries();
-            if (mSeries != me.getLabels()[0]) {
-                cfg.highlightSeries = mSeries;
-            }
-            cfg.seriesLocked = !cfg.seriesLocked;
+    var clickCallback = function () {
+        blockHighlight = true;
+        var me = this;
+        var mSeries = me.getHighlightSeries();
+        if (mSeries != me.getLabels()[0]) {
+            cfg.highlightSeries = mSeries;
+        }
+        cfg.seriesLocked = !cfg.seriesLocked;
 
-            for (id in allGraphs) {
-                if (allGraphs.hasOwnProperty(id)) {
-                    allGraphs[id].highlight();
-                }
+        for (id in allGraphs) {
+            if (allGraphs.hasOwnProperty(id)) {
+                allGraphs[id].highlight();
             }
-            blockHighlight = false;
-        };
-    })();
+        }
+        blockHighlight = false;
+    };
+
+    var lockSeries = function(series) {
+        blockHighlight = true;
+        cfg.highlightSeries = series;
+        cfg.seriesLocked = true;
+
+        for (id in allGraphs) {
+            if (allGraphs.hasOwnProperty(id)) {
+                allGraphs[id].highlight();
+            }
+        }
+        blockHighlight = false;
+    };
 
     // Returns the index corresponding to xVal, or null if there is none.
     function dygraphsBinarySearch(g, xVal) {
@@ -179,7 +199,6 @@
                     var chartDiv = $(mainDiv).children()[2];
                     var loadingDiv = $(mainDiv).children()[3];
 
-                    var myId;
                     var colors = [];
                     var options = {};
                     var graph;
@@ -187,22 +206,17 @@
                     // To Re-Size on Width Changes
                     var currWidth = 0;
 
-                    element.bind('contextmenu', function(event) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    });
-
-                    var onDblClick = function() {
-                        rezoom(scope.options.dateWindow, true);
-                    };
-
                     scope.formatTm = function(tm) {
-                        return moment(tm).format("YYYYMMDD-hh:mm:ss");
+                        return moment(tm).format("YYYYMMDD-HH:mm:ss");
                     };
 
-                    scope.$watchCollection('options.dateWindow', function() {
-                        if (graph !== undefined) {
-                            graph.updateOptions({dateWindow: scope.dateWindow});
+                    scope.$watchCollection('options.dateWindow', function(newValue, oldValue) {
+                        if (newValue !== oldValue) {
+                            currTimeRange = scope.options.dateWindow;
+                            if (graph !== undefined) {
+                                graph.myId = undefined;
+                            }
+                            graph = undefined;
                         }
                     });
 
@@ -210,6 +224,10 @@
                         options.file = scope.data;
 
                         if (scope.lastTm == 0) {
+                            // graph's without an ID cannot update the time range.
+                            if (graph !== undefined) {
+                                graph.myId = undefined;
+                            }
                             graph = undefined;
                         }
 
@@ -246,15 +264,39 @@
                     });
 
                     scope.linePriority = function (line) {
-                        return !scope.hovered && !(line.visible && line.selected);
+                        if (scope.hovered) return 0;
+                        if (line.selected) return -2;
+                        if (line.visible) return -1;
+                        return 0;
                     };
 
                     scope.valueFor = function (line) {
+                        if (scope.hovered) return 0;
                         if (scope.values !== undefined && scope.values.length > line.index + 1) {
                             var x = scope.values[line.index + 1];
                             return isNaN(x) ? 0 : x;
                         }
                         return 0;
+                    };
+
+                    scope.valueForReverse = function (line) {
+                        return -scope.valueFor(line);
+                    };
+
+                    scope.resetYAxis = function() {
+                        var opts = {
+                            valueRange: null
+                        };
+                        graph.updateOptions(opts);
+                        highlight();
+                    };
+
+                    scope.resetXAxis = function() {
+                        rezoom(scope.options.dateWindow, false);
+                    };
+
+                    scope.resetZoom = function() {
+                        rezoom(scope.options.dateWindow, true);
                     };
 
                     scope.$watch('legendAbove', function() {
@@ -295,6 +337,15 @@
                         }
                     };
 
+                    scope.resetVisibility = function(visible, except) {
+                        for (i = 0; i < scope.series.length; ++i) {
+                            if (i != except) {
+                                scope.series[i].visible = visible;
+                                graph.setVisibility(i, visible);
+                            }
+                        }
+                    };
+
                     scope.selectSeries = function (idx) {
                         var i;
 
@@ -318,19 +369,10 @@
                                 }
                             }
 
-                            function resetAll(visible) {
-                                for (i = 0; i < scope.series.length; ++i) {
-                                    if (i != idx) {
-                                        scope.series[i].visible = visible;
-                                        graph.setVisibility(i, visible);
-                                    }
-                                }
-                            }
-
                             if (allInvisible) { // Reset Visibility
-                                resetAll(true);
+                                scope.resetVisibility(true, idx);
                             } else if (allVisible) { // Turn everything off except this one.
-                                resetAll(false);
+                                scope.resetVisibility(false, idx);
                             } else  { // Just turn this one off.
                                 scope.series[idx].visible = false;
                                 graph.setVisibility(idx, false);
@@ -350,6 +392,23 @@
 
                     scope.mouseLeaveLegend = function () {
                         scope.hovered = false;
+                    };
+
+                    scope.highlightSeries = function (line) {
+                        lockSeries(line.label);
+                    };
+
+                    scope.toggleSeriesVisibility = function (line) {
+                        line.visible = !line.visible;
+                        graph.setVisibility(line.index, line.visible);
+                    };
+
+                    scope.hideOtherSeries = function (line) {
+                        scope.resetVisibility(false, line);
+                        if (!line.visible) {
+                            line.visible = true;
+                            graph.setVisibility(line.index, true);
+                        }
                     };
 
                     resize();
@@ -396,7 +455,7 @@
                     }
 
                     function createGraph() {
-                        var isFirstGraph = (myId === undefined);
+                        var isFirstGraph = (scope.myId === undefined);
 
                         resize();
 
@@ -405,7 +464,7 @@
 
                         opts.interactionModel = {};
                         $.extend(opts.interactionModel, Dygraph.Interaction.defaultModel);
-                        opts.interactionModel.dblclick = onDblClick;
+                        opts.interactionModel.dblclick = scope.resetZoom;
 
                         graph = new Dygraph(chartDiv, scope.data, opts);
 
@@ -417,21 +476,21 @@
                             dateWindow: scope.options.dateWindow
                         });
 
-                        var graphModel = {
-                            highlight: highlight,
-                            graph: graph
-                        };
                         if (isFirstGraph) {
-                            myId = gid;
-                            allGraphs[myId] = graphModel;
+                            scope.myId = gid;
                             gid += 1;
 
                             scope.$on('$destroy', function () {
-                                delete allGraphs[myId];
+                                delete allGraphs[scope.myId];
                             });
-                        } else {
-                            allGraphs[myId] = graphModel;
                         }
+
+                        graph.myId = scope.myId;
+                        allGraphs[scope.myId] = {
+                            highlight: highlight,
+                            graph: graph,
+                            myId: scope.myId
+                        };
 
                         highlight();
                     }

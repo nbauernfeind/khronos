@@ -58,8 +58,6 @@ khronosApp.controller('MetricWidgetCfgCtrl', ['$q', '$scope', 'WebSocket', funct
 }]);
 
 khronosApp.controller('MetricWidgetCtrl', ['$q', '$scope', 'WebSocket', function ($q, $scope, WebSocket) {
-
-
     function emptyFunc() {}
 
     function initConfig(name, def) {

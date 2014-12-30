@@ -2,8 +2,7 @@
     <div class="legend-above" ng-show="data.length > 0 && legendAbove">
         <div><b>{{formatTm(values[0])}}</b></div>
         <div class="series-container">
-            <span ng-repeat="line in series | orderBy:['-visible', linePriority]" class="series">
-                <span>{{line.prioritized()}}</span>
+            <span ng-repeat="line in series | orderBy:[linePriority, valueForReverse]" class="series">
                 <span>{{valueFor(line) | number}}</span>
                 <a ng-click="selectSeries(line.index)">
                     <span class="" ng-style="{color: line.color}" ng-class="{'not-graphed': !line.visible,
@@ -14,12 +13,13 @@
             </span>
         </div>
     </div>
-    <div class="legend pull-left" ng-show="data.length > 0 && !legendAbove" ng-mouseleave="mouseLeaveLegend()" ng-mouseover="mouseEnterLegend()">
+    <div class="legend pull-left" ng-show="data.length > 0 && !legendAbove" ng-mouseleave="mouseLeaveLegend()"
+         ng-mouseover="mouseEnterLegend()">
         <div class="series-container">
             <div><b>{{formatTm(values[0])}}</b></div>
             <ul>
-            <li ng-repeat="line in series | orderBy:['-visible', linePriority, valueFor]" class="series">
-                <span>{{line.prioritized()}}</span>
+            <li ng-repeat="line in series | orderBy:[linePriority, valueForReverse]" class="series"
+                    context-menu data-target="graph-{{myId}}-series-menu-{{line.index}}">
                 <span>{{valueFor(line) | number}}</span>
                 <a ng-click="selectSeries(line.index)">
                     <span class="" ng-style="{color: line.color}" ng-class="{'not-graphed': !line.visible,
@@ -31,6 +31,47 @@
             </ul>
         </div>
     </div>
-    <div class="graph pull-right" ng-show="data.length > 0 && !loading"></div>
+    <div class="graph pull-right" ng-show="data.length > 0 && !loading" context-menu
+         data-target="graph-{{myId}}-context-menu"></div>
     <div class="loading mega-center" ng-show="loading"><i class="fa fa-spinner fa-spin fa-4x"></i></div>
+    <div ng-repeat="line in series" class="dropdown position-fixed" id="graph-{{myId}}-series-menu-{{line.index}}">
+        <ul class="dropdown-menu" role="menu">
+            <li>
+                <a class="pointer" role="menuitem" tabindex="1"
+                   ng-click="highlightSeries(line)">
+                    Highlight '{{line.label}}'
+                </a>
+            </li>
+            <li>
+                <a class="pointer" role="menuitem" tabindex="2"
+                   ng-click="toggleSeriesVisibility(line)">
+                    Hide/Show '{{line.label}}'
+                </a>
+            </li>
+            <li>
+                <a class="pointer" role="menuitem" tabindex="3"
+                   ng-click="hideOtherSeries(line)">
+                    Show Only '{{line.label}}'
+                </a>
+            </li>
+            <li>
+                <a class="pointer" role="menuitem" tabindex="4"
+                   ng-click="resetVisibility(true)">
+                    Show All
+                </a>
+        </ul>
+    </div>
+    <div class="dropdown position-fixed" id="graph-{{myId}}-context-menu">
+        <ul class="dropdown-menu" role="menu">
+            <li>
+                <a class="pointer" role="menuitem" tabindex="1" ng-click="resetYAxis()">Reset Y-axis Zoom</a>
+            </li>
+            <li>
+                <a class="pointer" role="menuitem" tabindex="2" ng-click="resetXAxis()">Reset X-axis Zoom</a>
+            </li>
+            <li>
+                <a class="pointer" role="menuitem" tabindex="3" ng-click="resetZoom()">Reset All Zoom</a>
+            </li>
+        </ul>
+    </div>
 </div>
