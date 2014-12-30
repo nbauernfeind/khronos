@@ -13,12 +13,26 @@
     <name>${project.artifactId}</name>
     <description>Khronos DB Cassandra Plugin</description>
 
+    <repositories>
+        <repository>
+            <id>websudos</id>
+            <url>http://maven.websudos.co.uk/ext-release-local</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <!-- Khronos -->
         <dependency>
             <groupId>com.nefariouszhen.khronos</groupId>
             <artifactId>khronos-db-core</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <!-- Cassandra -->
+        <dependency>
+            <groupId>com.websudos</groupId>
+            <artifactId>phantom-dsl_${scala.binary.version}</artifactId>
+            <version>1.5.0</version>
         </dependency>
     </dependencies>
 </project>
