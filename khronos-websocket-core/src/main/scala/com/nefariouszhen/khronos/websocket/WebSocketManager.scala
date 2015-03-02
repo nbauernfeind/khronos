@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.{JsonProperty, JsonTypeInfo, JsonTypeName}
-import com.fasterxml.jackson.databind.{JsonMappingException, ObjectMapper}
+import com.fasterxml.jackson.databind.{ObjectWriter, JsonMappingException, ObjectMapper}
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
@@ -49,7 +49,7 @@ class WebSocketState @Inject()(@Assisted r: AtmosphereResource, mapper: ObjectMa
   def write[T: Manifest](cid: Int, t: T): Unit = this.synchronized {
     if (!closed.get && closeables.contains(cid)) {
       val typ = scalaMapper.constructType[WebSocketResponse[T]]
-      val typMapper = mapper.writerWithType(typ)
+      val typMapper: ObjectWriter = mapper.writerFor(typ)
       r.write(typMapper.writeValueAsString(WebSocketResponse(cid, t)))
     }
   }

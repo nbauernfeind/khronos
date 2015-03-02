@@ -11,13 +11,13 @@
     <description>Khronos is a time series system worth your ms.</description>
 
     <properties>
-        <scala.version>2.11.4</scala.version>
+        <scala.version>2.11.5</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
         <atmosphere.version>2.2.3</atmosphere.version>
         <dropwizard.version>0.7.1</dropwizard.version>
         <jetty.version>9.0.7.v20131107</jetty.version> <!-- Dependent on Dropwizard Version -->
-        <jackson.version>2.4.3</jackson.version>
-        <guice.version>4.0-beta4</guice.version>
+        <jackson.version>2.5.1</jackson.version>
+        <guice.version>4.0-beta5</guice.version>
         <guava.version>17.0</guava.version>
     </properties>
 
@@ -131,7 +131,7 @@
             <dependency>
                 <groupId>net.codingwell</groupId>
                 <artifactId>scala-guice_${scala.binary.version}</artifactId>
-                <version>4.0.0-beta4</version>
+                <version>4.0.0-beta5</version>
             </dependency>
 
             <!-- WebJars -->

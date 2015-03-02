@@ -13,13 +13,6 @@
     <name>${project.artifactId}</name>
     <description>Khronos DB Cassandra Plugin</description>
 
-    <repositories>
-        <repository>
-            <id>websudos</id>
-            <url>http://maven.websudos.co.uk/ext-release-local</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <!-- Khronos -->
         <dependency>
