@@ -104,7 +104,7 @@ khronosApp.controller('KhronosCtrl', ['$scope', 'Widgets', function ($scope, Wid
         return $.extend(true, {}, dupe);
     };
 
-    $scope.$watch('additionalJavascript', function() {
+    $scope.additionalJavascript.$promise.then(function() {
         if ($scope.additionalJavascript.$resolved) {
             $scope.pendingLoads -= 1;
         }
@@ -130,7 +130,7 @@ khronosApp.controller('KhronosCtrl', ['$scope', 'Widgets', function ($scope, Wid
                 }
             }
         }
-    }, true);
+    });
 }]);
 
 khronosApp.controller('StatusTabCtrl', ['$scope', 'Widgets', function ($scope) {
