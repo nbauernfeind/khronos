@@ -1,8 +1,10 @@
-### Note: This project is in super pre-alpha stage. Don't judge it just yet!
+#### Note: This project is in super pre-alpha stage. Don't judge it just yet!
 
 # Khronos
 
 This is yet another timeseries project that aims to be simple, extensible, and scalable.
+
+We use [Travis CI](http://about.travis-ci.org) for build verification.  [![Build Status](https://secure.travis-ci.org/khronos-metrics/khronos.svg?branch=master)](http://travis-ci.org/khronos-metrics/khronos)
 
 ## Getting Started
 
