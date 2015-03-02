@@ -36,7 +36,7 @@ Run the application.
 $ java -jar khronos-app-${version}.jar server config.yml
 ```
 
-Visit [http://localhost:2000/] to be sent to the dashboard.
+Visit http://localhost:2000/ to be sent to the dashboard.
 
 ## Collecting Data
 
